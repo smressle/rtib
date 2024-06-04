@@ -1,0 +1,26 @@
+  Your Athena++ distribution has now been configured with the following options: 
+  Problem generator:            rtb
+  Coordinate system:            cartesian
+  Equation of state:            adiabatic
+  Riemann solver:               hlld
+  Magnetic fields:              ON
+  Number of scalars:            0
+  Special relativity:           ON
+  General relativity:           OFF
+  Radiative Transfer:           OFF
+  Implicit Radiation:           OFF
+  Cosmic Ray Transport:         OFF
+  Frame transformations:        OFF
+  Self-Gravity:                 OFF
+  Super-Time-Stepping:          OFF
+  Debug flags:                  OFF
+  Code coverage flags:          OFF
+  Linker flags:                  
+  Floating-point precision:     double
+  Number of ghost cells:        2
+  MPI parallelism:              OFF
+  OpenMP parallelism:           OFF
+  FFT:                          OFF
+  HDF5 output:                  OFF
+  Compiler:                     g++
+  Compilation command:          g++  -O3 -std=c++11
