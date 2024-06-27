@@ -61,7 +61,7 @@ void ProjectPressureOuterX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
                             FaceField &b, Real time, Real dt,
                             int il, int iu, int jl, int ju, int kl, int ku, int ngh);
 Real vsq(MeshBlock *pmb, int iout);
-Real cs;
+// Real cs;
 
 
 namespace {
@@ -175,6 +175,10 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
   Real rho_c = rho_h * drat;
 
   Real Bc = Bh / std::sqrt(1.0 + (1.0 - 1.0/drat)*beta_c);
+
+
+// press_over_rho = SQR(cs)/(gamma - (gamma/(gamma-1))*SQR(cs));
+  Real cs = std::sqrt(press_over_rho_interface * gamma / (1.0 + gamma/(gm1) *press_over_rho_interface) );
 
 
 // Bc^2 / rho_c = sigma_h * (1 + (1-1/drat)*beta_c)/drat
@@ -356,7 +360,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           phydro->w(IM2,k,j,i) = 0.0;
           phydro->w(IM3,k,j,i) *= (amp);
           if (NON_BAROTROPIC_EOS) {
-            phydro->w(IPR,k,j,i) =  press_over_rho_interface + grav_acc*den*(pcoord->x2v(j));
+            phydro->w(IPR,k,j,i) =  press_over_rho_interface*den + grav_acc*den*(pcoord->x2v(j));
           }
         }
       }
