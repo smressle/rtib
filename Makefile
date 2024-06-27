@@ -7,17 +7,17 @@ PROBLEM_FILE = rtb.cpp
 COORDINATES_FILE = cartesian.cpp
 EOS_FILE = adiabatic_mhd_sr.cpp
 GENERAL_EOS_FILE = noop.cpp
-RSOLVER_FILE = hlld_rel.cpp
+RSOLVER_FILE = hlle_mhd_rel.cpp
 RSOLVER_DIR = mhd/
 MPIFFT_FILE =  
 
 # General compiler specifications
 
-CXX := g++
-CPPFLAGS := 
+CXX := mpicxx
+CPPFLAGS :=  -I/cita/modules/hdf5/1.12.1-ucx/include
 CXXFLAGS := -O3 -std=c++11
-LDFLAGS := 
-LDLIBS := 
+LDFLAGS :=  -L/cita/modules/hdf5/1.12.1-ucx/lib
+LDLIBS :=  -lhdf5
 GCOV_CMD := gcov
 
 # Preliminary definitions

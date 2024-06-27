@@ -22,7 +22,7 @@
 #define COORDINATE_SYSTEM "cartesian"
 
 // Riemann solver
-#define RIEMANN_SOLVER "hlld"
+#define RIEMANN_SOLVER "hlle"
 
 // configure.py dict(definitions) Boolean values:
 
@@ -79,13 +79,13 @@
 #define NO_FFT
 
 // MPI parallelization (MPI_PARALLEL or NOT_MPI_PARALLEL)
-#define NOT_MPI_PARALLEL
+#define MPI_PARALLEL
 
 // OpenMP parallelization (OPENMP_PARALLEL or NOT_OPENMP_PARALLEL)
 #define NOT_OPENMP_PARALLEL
 
 // HDF5 output (HDF5OUTPUT or NO_HDF5OUTPUT)
-#define NO_HDF5OUTPUT
+#define HDF5OUTPUT
 
 // try/throw/catch C++ exception handling (ENABLE_EXCEPTIONS or DISABLE_EXCEPTIONS)
 // (enabled by default)
@@ -93,8 +93,8 @@
 
 // compiler options
 #define COMPILED_WITH "g++"
-#define COMPILER_COMMAND "g++"
-#define COMPILED_WITH_OPTIONS " -O3 -std=c++11  " // NOLINT
+#define COMPILER_COMMAND "mpicxx"
+#define COMPILED_WITH_OPTIONS " -I/cita/modules/hdf5/1.12.1-ucx/include -O3 -std=c++11  -L/cita/modules/hdf5/1.12.1-ucx/lib  -lhdf5" // NOLINT
 
 //----------------------------------------------------------------------------------------
 // macros associated with numerical algorithm (rarely modified)
