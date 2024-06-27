@@ -173,9 +173,10 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
   Real rho_c = rho_h * drat;
 
-  Real Bc = Bh * std::sqrt(1.0 + (1.0 - 1/drat)*beta_c);
+  Real Bc = Bh * std::sqrt(1.0 + (1.0 - 1.0/drat)*beta_c);
 
 
+// Bc^2 / rho_c = sigma_h * (1 + (1-1/drat)*beta_c)/drat
 
 
 
