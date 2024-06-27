@@ -393,7 +393,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       Real By_slope = (Bcy - Bhy) / ( L / 4.0) ; 
 
       Real Bx, By;
-      angle = (angle/180.)*PI;
+      // angle = (angle/180.)*PI;
 
       for (int k=ks; k<=ke; k++) {
         for (int j=js; j<=je; j++) {
