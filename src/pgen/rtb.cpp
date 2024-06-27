@@ -150,7 +150,34 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
   // Read perturbation amplitude, problem switch, density ratio
   Real amp = pin->GetReal("problem","amp");
   int iprob = pin->GetInteger("problem","iprob");
-  Real drat = pin->GetOrAddReal("problem","drat",3.0);
+  // Real drat = pin->GetOrAddReal("problem","drat",3.0);
+
+
+  Real beta_c = pin->GetOrAddReal("problem","beta_c",1.0);
+  Real sigma_c = pin->GetOrAddReal("problem","sigma_c",1.0);
+
+
+  Real press_over_rho_interface = beta_c * sigma_c /2.0;
+  Real sigma_h = pin->GetOrAddReal("problem","sigma_h",1.0);
+  Real beta_h = press_over_rho_interface/sigma_h * 2.0;
+
+
+  Real rho_h = 1.0;
+
+  Bh = std::sqrt(sigma_h * rho_h);
+
+  // sigma_h/sigma_c = Bh^2/Bc^2 * drat
+  // Bh^2/Bc^2 = 1 + (1 - 1/drat)*beta_c 
+  // sigma_h/sigma_c  = drat + (drat -1)*beta_c
+  Real drat = ( sigma_h/sigma_c+beta_c )/(1.0 + beta_c);
+
+  Real rho_c = rho_h * drat;
+
+  Bc = Bh * std::sqrt(1.0 + (1.0 - 1/drat)*beta_c);
+
+
+
+
 
 
   // 2D PROBLEM ---------------------------------------------------------------
@@ -189,14 +216,57 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
     // initialize interface B, same for all iprob
     if (MAGNETIC_FIELDS_ENABLED) {
       // Read magnetic field strength, angle [in degrees, 0 is along +ve X-axis]
-      Real b0 = pin->GetReal("problem","b0");
+      // Real b0 = pin->GetReal("problem","b0");
       Real angle = pin->GetReal("problem","angle");
       angle = (angle/180.)*PI;
+
+      Real L = pmy_mesh->mesh_size.x2max - pmy_mesh->mesh_size.x2min;
+      Real rotation_region_y_min = 3.0*L/8.0 +  pmy_mesh->mesh_size.x2min;
+      Real rotation_region_y_max = rotation_region_y_min + L/4.0;
+
+      Real Bin = ( Bh * Bc * std::sin(theta_rot) ) / std::sqrt( SQR(Bh) + SQR(Bc) + 2.0*Bh*Bc*std::cos(theta_rot) ) ;
+      Real Bhx = Bin;
+      Real Bcx = - Bhx;
+
+      Real Bhz = std::sqrt( SQR(Bh) - SQR(Bin) );
+      Real Bcz = std::sqrt( SQR(Bc) - SQR(Bin) );
+
+      Real Bx_slope = (Bcx - Bhx) / ( L / 4.0) ; 
+      Real Bz_slope = (Bcz - Bhz) / ( L / 4.0) ; 
+
+      Real Bx, By;
+      if (pcoord->x2v(j) < rotation_region_y_min){
+        Bx = Bhx;
+        Bz = Bhz;
+      }
+      else if (pcoord->x2v(j) < L/2.0 + pmy_mesh->mesh_size.x2min){
+        Bx = Bhx + Bx_slope * ( pcoord->x2v(j) - rotation_region_y_min);
+        Bz = Bhz + Bz_slope * ( pcoord->x2v(j) - rotation_region_y_min);
+
+        //Now normalize
+
+        Real B_norm = std::sqrt( SQR(Bx) + SQR(Bz) );
+        Bx = Bx * Bh/B_norm;
+      }
+      else if (pcoord->x2v(j) < rotation_region_y_max){
+        Bx = Bhx + Bx_slope * ( pcoord->x2v(j) - rotation_region_y_min);
+        Bz = Bhz + Bz_slope * ( pcoord->x2v(j) - rotation_region_y_min);
+
+        //Now normalize
+
+        Real B_norm = std::sqrt( SQR(Bx) + SQR(Bz) );
+        Bx = Bx * Bc/B_norm;
+      }
+      else{
+        Bx = Bcx;
+        Bz = Bcz;
+      }
+
       
       for (int k=ks; k<=ke; k++) {
         for (int j=js; j<=je; j++) {
           for (int i=is; i<=ie+1; i++) {
-            pfield->b.x1f(k,j,i) = b0*std::cos(angle);;
+            pfield->b.x1f(k,j,i) = Bx;
           }
         }
       }
@@ -211,7 +281,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       for (int k=ks; k<=ke+1; k++) {
         for (int j=js; j<=je; j++) {
           for (int i=is; i<=ie; i++) {
-            pfield->b.x3f(k,j,i) = b0*std::sin(angle);
+            pfield->b.x3f(k,j,i) = Bz;
           }
         }
       }
