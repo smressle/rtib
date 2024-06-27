@@ -234,7 +234,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       Real Bx_slope = (Bcx - Bhx) / ( L / 4.0) ; 
       Real Bz_slope = (Bcz - Bhz) / ( L / 4.0) ; 
 
-      Real Bx, By;
+      Real Bx, Bz;
 
 
       
