@@ -205,7 +205,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           phydro->w(IM2,k,j,i) = v2*Lorentz;
           phydro->w(IM3,k,j,i) = 0.0;
           if (NON_BAROTROPIC_EOS) {
-            phydro->w(IEN,k,j,i) = (press_over_rho_interface + grav_acc*den*(pcoord->x2v(j)));
+            phydro->w(IEN,k,j,i) = (press_over_rho_interface*den + grav_acc*den*(pcoord->x2v(j)));
             
           }
         }
