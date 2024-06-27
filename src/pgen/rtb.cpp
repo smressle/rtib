@@ -136,7 +136,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
     kl -= (NGHOST);
     ku += (NGHOST);
   }
-  std::int64_t iseed = -1;
+  // std::int64_t iseed = -1;
+  std::int64_t iseed = -1 - gid;
   Real gamma = peos->GetGamma();
   Real gm1 = gamma - 1.0;
   // Real press_over_rho = SQR(cs)/(gamma - (gamma/(gamma-1))*SQR(cs));
