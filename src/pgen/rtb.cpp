@@ -79,7 +79,7 @@ int RefinementCondition(MeshBlock *pmb);
 //========================================================================================
 
 void Mesh::InitUserMeshData(ParameterInput *pin) {
-  cs = pin->GetOrAddReal("problem", "cs", 0.1);
+  // cs = pin->GetOrAddReal("problem", "cs", 0.1);
   
   if (adaptive)
     EnrollUserRefinementCondition(RefinementCondition);
@@ -139,7 +139,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
   std::int64_t iseed = -1;
   Real gamma = peos->GetGamma();
   Real gm1 = gamma - 1.0;
-  Real press_over_rho = SQR(cs)/(gamma - (gamma/(gamma-1))*SQR(cs));
+  // Real press_over_rho = SQR(cs)/(gamma - (gamma/(gamma-1))*SQR(cs));
   Real kx = 2.0*(PI)/(pmy_mesh->mesh_size.x1max - pmy_mesh->mesh_size.x1min);
   Real ky = 2.0*(PI)/(pmy_mesh->mesh_size.x2max - pmy_mesh->mesh_size.x2min);
   Real kz = 2.0*(PI)/(pmy_mesh->mesh_size.x3max - pmy_mesh->mesh_size.x3min);
@@ -204,7 +204,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           phydro->w(IM2,k,j,i) = v2*Lorentz;
           phydro->w(IM3,k,j,i) = 0.0;
           if (NON_BAROTROPIC_EOS) {
-            phydro->w(IEN,k,j,i) = (press_over_rho + grav_acc*den*(pcoord->x2v(j)));
+            phydro->w(IEN,k,j,i) = (press_over_rho_interface + grav_acc*den*(pcoord->x2v(j)));
             
           }
         }
@@ -217,8 +217,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
     if (MAGNETIC_FIELDS_ENABLED) {
       // Read magnetic field strength, angle [in degrees, 0 is along +ve X-axis]
       // Real b0 = pin->GetReal("problem","b0");
-      Real angle = pin->GetReal("problem","angle");
-      angle = (angle/180.)*PI;
+      Real theta_rot = pin->GetReal("problem","theta_rot");
+      theta_rot = (theta_rot/180.)*PI;
 
       Real L = pmy_mesh->mesh_size.x2max - pmy_mesh->mesh_size.x2min;
       Real rotation_region_y_min = 3.0*L/8.0 +  pmy_mesh->mesh_size.x2min;

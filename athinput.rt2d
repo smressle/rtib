@@ -53,10 +53,10 @@ gamma      = 1.333       # gamma = C_p/C_v
 grav_acc2  = 0.04        # 0.025
 
 <problem>
-b0 = 3.1622
-cs = 0.26
-angle = 0
+sigma_h = 10.0
+sigma_c = 0.1
+beta_c = 1.0
+theta_rot = 0.0
 iprob = 2
 amp   = 0.01
-drat  = 100
 
