@@ -2,7 +2,7 @@
   Problem generator:            rtb
   Coordinate system:            cartesian
   Equation of state:            adiabatic
-  Riemann solver:               hlld
+  Riemann solver:               hlle
   Magnetic fields:              ON
   Number of scalars:            0
   Special relativity:           ON
@@ -15,12 +15,13 @@
   Super-Time-Stepping:          OFF
   Debug flags:                  OFF
   Code coverage flags:          OFF
-  Linker flags:                  
+  Linker flags:                  -L/cita/modules/hdf5/1.12.1-ucx/lib  -lhdf5
   Floating-point precision:     double
   Number of ghost cells:        2
-  MPI parallelism:              OFF
+  MPI parallelism:              ON
   OpenMP parallelism:           OFF
   FFT:                          OFF
-  HDF5 output:                  OFF
+  HDF5 output:                  ON
+  HDF5 precision:               single
   Compiler:                     g++
-  Compilation command:          g++  -O3 -std=c++11
+  Compilation command:          mpicxx  -I/cita/modules/hdf5/1.12.1-ucx/include -O3 -std=c++11
