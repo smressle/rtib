@@ -346,21 +346,27 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           Real den=1.0;
           if (pcoord->x3v(k) > 0.0) den *= drat;
 
+          Real v3;
+
           if (iprob == 1) {
-            phydro->w(IM3,k,j,i) = (1.0 + std::cos(kx*(pcoord->x1v(i))))/8.0
+            v3 = (1.0 + std::cos(kx*(pcoord->x1v(i))))/8.0
                                    *(1.0 + std::cos(ky*pcoord->x2v(j)))
                                    *(1.0 + std::cos(kz*pcoord->x3v(k)));
           } else {
-            phydro->w(IM3,k,j,i) = amp*(ran2(&iseed) - 0.5)*(
+            v3 = amp*(ran2(&iseed) - 0.5)*(
                 1.0 + std::cos(kz*pcoord->x3v(k)));
           }
 
           phydro->w(IDN,k,j,i) = den;
           phydro->w(IM1,k,j,i) = 0.0;
           phydro->w(IM2,k,j,i) = 0.0;
-          phydro->w(IM3,k,j,i) *= (amp);
+          v3 *= (amp*cs);
+
+          Real Lorentz = 1.0/std::sqrt(1.0 - SQR(v3));
+
+          phydro->w(IM3,k,j,i) = v3 * Lorentz;
           if (NON_BAROTROPIC_EOS) {
-            phydro->w(IPR,k,j,i) =  press_over_rho_interface*den + grav_acc*den*(pcoord->x2v(j));
+            phydro->w(IPR,k,j,i) =  press_over_rho_interface*den + grav_acc*den*(pcoord->x3v(k));
           }
         }
       }
@@ -369,28 +375,98 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
     // initialize interface B
     if (MAGNETIC_FIELDS_ENABLED) {
       // Read magnetic field strength, angle [in degrees, 0 is along +ve X-axis]
-      Real b0 = pin->GetReal("problem","b0");
-      Real angle = pin->GetReal("problem","angle");
+      Real theta_rot = pin->GetReal("problem","theta_rot");
+      theta_rot = (theta_rot/180.)*PI;
+
+      Real L = pmy_mesh->mesh_size.x3max - pmy_mesh->mesh_size.x3min;
+      Real rotation_region_z_min = 3.0*L/8.0 +  pmy_mesh->mesh_size.x3min;
+      Real rotation_region_z_max = rotation_region_z_min + L/4.0;
+
+      Real Bin = ( Bh * Bc * std::sin(theta_rot) ) / std::sqrt( SQR(Bh) + SQR(Bc) + 2.0*Bh*Bc*std::cos(theta_rot) ) ;
+      Real Bhx = Bin;
+      Real Bcx = - Bhx;
+
+      Real Bhy = std::sqrt( SQR(Bh) - SQR(Bin) );
+      Real Bcy = std::sqrt( SQR(Bc) - SQR(Bin) );
+
+      Real Bx_slope = (Bcx - Bhx) / ( L / 4.0) ; 
+      Real By_slope = (Bcy - Bhy) / ( L / 4.0) ; 
+
+      Real Bx, By;
       angle = (angle/180.)*PI;
+
       for (int k=ks; k<=ke; k++) {
         for (int j=js; j<=je; j++) {
           for (int i=is; i<=ie+1; i++) {
-            if (pcoord->x3v(k) > 0.0) {
-              pfield->b.x1f(k,j,i) = b0;
-            } else {
-              pfield->b.x1f(k,j,i) = b0*std::cos(angle);
+
+            if (pcoord->x3v(k) < rotation_region_z_min){
+              Bx = Bhx;
+              By = Bhy;
             }
+            else if (pcoord->x3v(k) < L/2.0 + pmy_mesh->mesh_size.x3min){
+              Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+              By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+
+              //Now normalize
+
+              Real B_norm = std::sqrt( SQR(Bx) + SQR(By) );
+              Bx = Bx * Bh/B_norm;
+              By = By * Bh/B_norm;
+              }
+            else if (pcoord->x3v(k) < rotation_region_z_max){
+              Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+              By = Bhy + Bz_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+
+              //Now normalize
+
+              Real B_norm = std::sqrt( SQR(Bx) + SQR(By) );
+              Bx = Bx * Bc/B_norm;
+              By = By * Bc/B_norm;
+            }
+            else{
+              Bx = Bcx;
+              By = Bcy;
+            }
+   
+            pfield->b.x1f(k,j,i) = Bx;
           }
         }
       }
       for (int k=ks; k<=ke; k++) {
         for (int j=js; j<=je+1; j++) {
           for (int i=is; i<=ie; i++) {
-            if (pcoord->x3v(k) > 0.0) {
-              pfield->b.x2f(k,j,i) = 0.0;
-            } else {
-              pfield->b.x2f(k,j,i) = b0*std::sin(angle);
+
+            if (pcoord->x3v(k) < rotation_region_z_min){
+              Bx = Bhx;
+              By = Bhy;
             }
+            else if (pcoord->x3v(k) < L/2.0 + pmy_mesh->mesh_size.x3min){
+              Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+              By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+
+              //Now normalize
+
+              Real B_norm = std::sqrt( SQR(Bx) + SQR(By) );
+              Bx = Bx * Bh/B_norm;
+              By = By * Bh/B_norm;
+              }
+            else if (pcoord->x3v(k) < rotation_region_z_max){
+              Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+              By = Bhy + Bz_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+
+              //Now normalize
+
+              Real B_norm = std::sqrt( SQR(Bx) + SQR(By) );
+              Bx = Bx * Bc/B_norm;
+              By = By * Bc/B_norm;
+            }
+            else{
+              Bx = Bcx;
+              By = Bcy;
+            }
+   
+
+            pfield->b.x2f(k,j,i) = By;
           }
         }
       }
