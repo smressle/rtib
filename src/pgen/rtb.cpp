@@ -255,6 +255,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
               Real B_norm = std::sqrt( SQR(Bx) + SQR(Bz) );
               Bx = Bx * Bh/B_norm;
+              Bz = Bz * Bh/B_norm;
               }
             else if (pcoord->x2v(j) < rotation_region_y_max){
               Bx = Bhx + Bx_slope * ( pcoord->x2v(j) - rotation_region_y_min);
@@ -264,6 +265,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
               Real B_norm = std::sqrt( SQR(Bx) + SQR(Bz) );
               Bx = Bx * Bc/B_norm;
+              Bz = Bz * Bc/B_norm;
             }
             else{
               Bx = Bcx;
@@ -298,6 +300,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
               Real B_norm = std::sqrt( SQR(Bx) + SQR(Bz) );
               Bx = Bx * Bh/B_norm;
+              Bz = Bz * Bh/B_norm;
               }
             else if (pcoord->x2v(j) < rotation_region_y_max){
               Bx = Bhx + Bx_slope * ( pcoord->x2v(j) - rotation_region_y_min);
@@ -307,6 +310,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
               Real B_norm = std::sqrt( SQR(Bx) + SQR(Bz) );
               Bx = Bx * Bc/B_norm;
+              Bz = Bz * Bc/B_norm;
             }
             else{
               Bx = Bcx;
