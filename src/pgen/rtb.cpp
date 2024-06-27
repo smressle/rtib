@@ -415,7 +415,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
               }
             else if (pcoord->x3v(k) < rotation_region_z_max){
               Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_z_min);
-              By = Bhy + Bz_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+              By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_z_min);
 
               //Now normalize
 
@@ -452,7 +452,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
               }
             else if (pcoord->x3v(k) < rotation_region_z_max){
               Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_z_min);
-              By = Bhy + Bz_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+              By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_z_min);
 
               //Now normalize
 
