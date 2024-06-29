@@ -353,7 +353,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
                                    *(1.0 + std::cos(ky*pcoord->x2v(j)))
                                    *(1.0 + std::cos(kz*pcoord->x3v(k)));
           } else {
-            v3 = amp*(ran2(&iseed) - 0.5)*(
+            v3 = (ran2(&iseed) - 0.5)*(
                 1.0 + std::cos(kz*pcoord->x3v(k)));
           }
 
