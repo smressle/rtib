@@ -17,22 +17,22 @@ dt         = 1           # time increment between outputs
 
 <time>
 cfl_number = 0.4         # The Courant, Friedrichs, & Lewy (CFL) Number
-nlim       = 100000      # cycle limit
-tlim       = 600         # time limit
+nlim       = -1      # cycle limit
+tlim       = 6000         # time limit
 integrator  = vl2        # time integration algorithm
 xorder      = 2          # order of spatial reconstruction
 ncycle_out  = 1          # interval for stdout summary info
 
 <mesh>
 nx1        = 256         # Number of zones in X1-direction
-x1min      = -0.16666667 # minimum value of X1
-x1max      = 0.16666667  # maximum value of X1
+x1min      = -0.5 ##-0.16666667 # minimum value of X1
+x1max      = 0.5 ##0.16666667  # maximum value of X1
 ix1_bc     = periodic    # inner-X1 boundary flag
 ox1_bc     = periodic    # outer-X1 boundary flag
 
-nx2        = 512         # Number of zones in X2-direction
-x2min      = -0.5        # minimum value of X2
-x2max      = 0.5         # maximum value of X2
+nx2        = 256         # Number of zones in X2-direction
+x2min      = -0.5 ##-0.5        # minimum value of X2
+x2max      = 0.5 ##0.5         # maximum value of X2
 ix2_bc     = user        # inner-X2 boundary flag
 ox2_bc     = user        # outer-X2 boundary flag
 
@@ -50,13 +50,13 @@ nx3 = 1
 <hydro>
 iso_sound_speed = 1.0 
 gamma      = 1.333       # gamma = C_p/C_v
-grav_acc2  = 0.04        # 0.025
+grav_acc2  = -0.04 ## ##04        # 0.025
 
 <problem>
 sigma_h = 10.0
 sigma_c = 0.1
-beta_c = 1.0
-theta_rot = 0.0
+beta_c =1.0
+theta_rot = 0
 iprob = 2
-amp   = 0.01
+amp   = 0.1
 
