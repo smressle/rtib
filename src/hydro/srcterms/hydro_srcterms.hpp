@@ -47,7 +47,7 @@ class HydroSourceTerms {
   void PointMass(const Real dt, const AthenaArray<Real> *flx,const AthenaArray<Real> &p,
                  AthenaArray<Real> &c);
   void ConstantAcceleration(const Real dt, const AthenaArray<Real> *flx,
-                            const AthenaArray<Real> &p, AthenaArray<Real> &c);
+                            const AthenaArray<Real> &p, ,const AthenaArray<Real> &bcc,AthenaArray<Real> &c);
   // shearing box src terms
   void ShearingBoxSourceTerms(const Real dt, const AthenaArray<Real> *flx,
                               const AthenaArray<Real> &p, AthenaArray<Real> &c);

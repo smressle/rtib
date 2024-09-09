@@ -130,7 +130,7 @@ void HydroSourceTerms::AddSourceTerms(const Real time, const Real dt,
 
   // constant acceleration (e.g. for RT instability)
   if (g1_ != 0.0 || g2_ != 0.0 || g3_ != 0.0)
-    ConstantAcceleration(dt, flux, prim, cons);
+    ConstantAcceleration(dt, flux, prim, bcc,cons);
 
   // Add new source terms here
   if (SELF_GRAVITY_ENABLED)
