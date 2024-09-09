@@ -17,6 +17,7 @@
 #include "../../mesh/mesh.hpp"
 #include "../hydro.hpp"
 #include "hydro_srcterms.hpp"
+#include "../eos/eos.hpp"
 
 //----------------------------------------------------------------------------------------
 //! \fn void HydroSourceTerms::ConstantAcceleration
