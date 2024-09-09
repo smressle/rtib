@@ -230,8 +230,12 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       // Real rotation_region_y_min = 3.0*L/8.0 +  pmy_mesh->mesh_size.x2min;
       // Real rotation_region_y_max = rotation_region_y_min + L/4.0;
 
-      Real rotation_region_y_min =  L/2.0 + pmy_mesh->mesh_size.x2min;
-      Real rotation_region_y_max = L/2.0 + pmy_mesh->mesh_size.x2min;
+      // Real rotation_region_y_min =  L/2.0 + pmy_mesh->mesh_size.x2min;
+      // Real rotation_region_y_max = L/2.0 + pmy_mesh->mesh_size.x2min;
+
+
+      Real rotation_region_y_min = 9.0*L/20.0 +  pmy_mesh->mesh_size.x2min;
+      Real rotation_region_y_max = rotation_region_y_min + L/20.0;
 
       Real Bin = ( Bh * Bc * std::sin(theta_rot) ) / std::sqrt( SQR(Bh) + SQR(Bc) + 2.0*Bh*Bc*std::cos(theta_rot) ) ;
       Real Bhx = Bin;
