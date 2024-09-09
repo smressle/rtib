@@ -26,7 +26,7 @@ void HydroSourceTerms::ConstantAcceleration(const Real dt,const AthenaArray<Real
                                             const AthenaArray<Real> &prim, const AthenaArray<Real> &bcc,
                                             AthenaArray<Real> &cons) {
   MeshBlock *pmb = pmy_hydro_->pmy_block;
-  Real gam = *pmb->peos->GetGamma();
+  Real gam = pmb->peos->GetGamma();
 
   // acceleration in 1-direction
   if (g1_!=0.0) {
