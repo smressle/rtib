@@ -180,6 +180,11 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 // press_over_rho = SQR(cs)/(gamma - (gamma/(gamma-1))*SQR(cs));
   Real cs = std::sqrt(press_over_rho_interface * gamma / (1.0 + gamma/(gm1) *press_over_rho_interface) );
 
+  Real L;
+  if (block_size.nx3==1) L = pmy_mesh->mesh_size.x2max - pmy_mesh->mesh_size.x2min;
+  else pmy_mesh->mesh_size.x3max - pmy_mesh->mesh_size.x3min;
+  Real length_of_rotation_region = L/10.0; 
+
 
 // Bc^2 / rho_c = sigma_h * (1 + (1-1/drat)*beta_c)/drat
 
@@ -234,8 +239,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       // Real rotation_region_y_max = L/2.0 + pmy_mesh->mesh_size.x2min;
 
 
-      Real rotation_region_y_min = 9.0*L/20.0 +  pmy_mesh->mesh_size.x2min;
-      Real rotation_region_y_max = rotation_region_y_min + L/10.0;
+      Real rotation_region_y_min = (L/2.0 - length_of_rotation_region/2.0) +  pmy_mesh->mesh_size.x2min;
+      Real rotation_region_y_max = rotation_region_y_min + length_of_rotation_region;
 
       Real Bin = ( Bh * Bc * std::sin(theta_rot) ) / std::sqrt( SQR(Bh) + SQR(Bc) + 2.0*Bh*Bc*std::cos(theta_rot) ) ;
       Real Bhx = Bin;
@@ -244,8 +249,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       Real Bhz = std::sqrt( SQR(Bh) - SQR(Bin) );
       Real Bcz = std::sqrt( SQR(Bc) - SQR(Bin) );
 
-      Real Bx_slope = (Bcx - Bhx) / ( L / 4.0) ; 
-      Real Bz_slope = (Bcz - Bhz) / ( L / 4.0) ; 
+      Real Bx_slope = (Bcx - Bhx) / ( length_of_rotation_region) ; 
+      Real Bz_slope = (Bcz - Bhz) / ( length_of_rotation_region) ; 
 
       Real Bx, Bz;
 
@@ -385,9 +390,11 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       Real theta_rot = pin->GetReal("problem","theta_rot");
       theta_rot = (theta_rot/180.)*PI;
 
-      Real L = pmy_mesh->mesh_size.x3max - pmy_mesh->mesh_size.x3min;
-      Real rotation_region_z_min = 3.0*L/8.0 +  pmy_mesh->mesh_size.x3min;
-      Real rotation_region_z_max = rotation_region_z_min + L/4.0;
+      Real rotation_region_z_min = (L/2.0-length_of_rotation_region/2.0) +  pmy_mesh->mesh_size.x3min;
+      Real rotation_region_z_max = rotation_region_z_min + length_of_rotation_region;
+
+      // Real rotation_region_z_min = 3.0*L/8.0 +  pmy_mesh->mesh_size.x3min;
+      // Real rotation_region_z_max = rotation_region_z_min + L/4.0;
 
       Real Bin = ( Bh * Bc * std::sin(theta_rot) ) / std::sqrt( SQR(Bh) + SQR(Bc) + 2.0*Bh*Bc*std::cos(theta_rot) ) ;
       Real Bhx = Bin;
@@ -396,8 +403,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       Real Bhy = std::sqrt( SQR(Bh) - SQR(Bin) );
       Real Bcy = std::sqrt( SQR(Bc) - SQR(Bin) );
 
-      Real Bx_slope = (Bcx - Bhx) / ( L / 4.0) ; 
-      Real By_slope = (Bcy - Bhy) / ( L / 4.0) ; 
+      Real Bx_slope = (Bcx - Bhx) / ( length_of_rotation_region) ; 
+      Real By_slope = (Bcy - Bhy) / ( length_of_rotation_region) ; 
 
       Real Bx, By;
       // angle = (angle/180.)*PI;
