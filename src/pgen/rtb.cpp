@@ -182,9 +182,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
   Real L;
   if (block_size.nx3==1) L = pmy_mesh->mesh_size.x2max - pmy_mesh->mesh_size.x2min;
-  else pmy_mesh->mesh_size.x3max - pmy_mesh->mesh_size.x3min;
-  Real length_of_rotation_region = L/10.0; 
-
+  else L = pmy_mesh->mesh_size.x3max - pmy_mesh->mesh_size.x3min;
+  Real length_of_rotation_region = pin->GetOrAddReal("problem","length_of_rotation_region",L/10.0);
 
 // Bc^2 / rho_c = sigma_h * (1 + (1-1/drat)*beta_c)/drat
 
