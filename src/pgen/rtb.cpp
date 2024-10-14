@@ -341,6 +341,18 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
         for (int j=js; j<=je; j++) {
           for (int i=is; i<=ie; i++) {
 
+
+            Real exp_arg_term,Bmag;
+            if (pcoord->x2v(j) > 0.0){ // cold
+              exp_arg_term = grav_acc / sigma_c * (2.0 + gamma/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
+              Bmag = Bc * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
+
+            }
+            else{ // hot
+              exp_arg_term = grav_acc / sigma_h * (2.0 + gamma/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
+              Bmag = Bh * SQR( std::exp(pcoord->x2v(j)*exp_arg_term));
+            }
+
             if (pcoord->x2v(j) < rotation_region_y_min){
               Bx = Bhx * Bmag/Bh;
               Bz = Bhz * Bmag/Bh;
