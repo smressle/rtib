@@ -215,7 +215,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             exp_arg_term = grav_acc / sigma_h * (2.0 + gamma/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
             press = press_over_rho_interface*dh * std::exp(pcoord->x2v(j)*exp_arg_term);
             den = dh * std::exp(pcoord->x2v(j)*exp_arg_term);
-            Bmag = Bh * SQR( std::exp(pcoord->x2v(j)*exp_arg_term));
+            Bmag = Bh * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
           }
 
 
@@ -424,7 +424,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             exp_arg_term = grav_acc / sigma_h * (2.0 + gamma/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
             press = press_over_rho_interface*dh * std::exp(pcoord->x3v(k)*exp_arg_term);
             den = dh * std::exp(pcoord->x3v(k)*exp_arg_term);
-            Bmag = Bh * SQR( std::exp(pcoord->x3v(k)*exp_arg_term));
+            Bmag = Bh * std::sqrt( std::exp(pcoord->x3v(k)*exp_arg_term));
           }
 
 
@@ -495,7 +495,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             }
             else{ // hot
               exp_arg_term = grav_acc / sigma_h * (2.0 + gamma/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
-              Bmag = Bh * SQR( std::exp(pcoord->x3v(k)*exp_arg_term));
+              Bmag = Bh * std::sqrt( std::exp(pcoord->x3v(k)*exp_arg_term));
             }
 
 
@@ -544,7 +544,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             }
             else{ // hot
               exp_arg_term = grav_acc / sigma_h * (2.0 + gamma/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
-              Bmag = Bh * SQR( std::exp(pcoord->x3v(k)*exp_arg_term));
+              Bmag = Bh * std::sqrt( std::exp(pcoord->x3v(k)*exp_arg_term));
             }
 
 
