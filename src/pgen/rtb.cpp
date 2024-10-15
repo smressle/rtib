@@ -406,6 +406,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
           // Real L = pmy_mesh->mesh_size.x3max - pmy_mesh->mesh_size.x3min;
           Real den=1.0;
+          Real dh = 1.0;
+          Real dc = dh * drat;
           if (pcoord->x3v(k) > 0.0) den *= drat;
 
 
