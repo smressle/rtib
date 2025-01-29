@@ -278,8 +278,13 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       Real Bhz_norm = Bhz/Bh;
       Real Bcz_norm = Bcz/Bc;
 
+
+      // I DON"T THINK THIS MAKES SENSE. Rotate angle, not linearly
       Real Bx_slope_norm = (Bcx_norm - Bhx_norm) / ( length_of_rotation_region) ; 
       Real Bz_slope_norm = (Bcz_norm - Bhz_norm) / ( length_of_rotation_region) ; 
+
+      // Real angle_with_x_h = std::arctan2(Bhz,Bhx);
+      // Real angle_with_x_c = std::arctan2(Bcz,Bzx);
 
       // Real Bx_slope = (Bcx - Bhx) / ( length_of_rotation_region) ; 
       // Real Bz_slope = (Bcz - Bhz) / ( length_of_rotation_region) ; 
@@ -525,8 +530,20 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       Real Bhy = sign_flip * std::sqrt( SQR(Bh) - SQR(Bin) );
       Real Bcy =             std::sqrt( SQR(Bc) - SQR(Bin) );
 
-      Real Bx_slope = (Bcx - Bhx) / ( length_of_rotation_region) ; 
-      Real By_slope = (Bcy - Bhy) / ( length_of_rotation_region) ; 
+      // Real Bx_slope = (Bcx - Bhx) / ( length_of_rotation_region) ; 
+      // Real By_slope = (Bcy - Bhy) / ( length_of_rotation_region) ; 
+
+
+
+      Real Bhx_norm = Bhx/Bh;
+      Real Bcx_norm = Bcx/Bc;
+      Real Bhy_norm = Bhy/Bh;
+      Real Bcy_norm = Bcy/Bc;
+
+
+      // I DON"T THINK THIS MAKES SENSE. Rotate angle, not linearly
+      Real Bx_slope_norm = (Bcx_norm - Bhx_norm) / ( length_of_rotation_region) ; 
+      Real By_slope_norm = (Bcy_norm - Bhy_norm) / ( length_of_rotation_region) ;
 
       Real Bx, By;
       // angle = (angle/180.)*PI;
@@ -552,8 +569,12 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
               By = Bhy * Bmag/Bh;
             }
             else if (pcoord->x3v(k) < L/2.0 + pmy_mesh->mesh_size.x3min){
-              Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_z_min);
-              By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+              // Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+              // By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+
+
+              Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x3v(k) - rotation_region_z_min);
+              By = Bhy_norm + By_slope_norm * ( pcoord->x3v(k) - rotation_region_z_min);
 
               //Now normalize
 
@@ -562,8 +583,11 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
               By = By * Bmag/B_norm;
               }
             else if (pcoord->x3v(k) < rotation_region_z_max){
-              Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_z_min);
-              By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+              // Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+              // By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+
+              Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x3v(k) - rotation_region_z_min);
+              By = Bhy_norm + By_slope_norm * ( pcoord->x3v(k) - rotation_region_z_min);
 
               //Now normalize
 
@@ -601,8 +625,11 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
               By = Bhy * Bmag/Bh;
             }
             else if (pcoord->x3v(k) < L/2.0 + pmy_mesh->mesh_size.x3min){
-              Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_z_min);
-              By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+              // Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+              // By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+
+              Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x3v(k) - rotation_region_z_min);
+              By = Bhy_norm + By_slope_norm * ( pcoord->x3v(k) - rotation_region_z_min);
 
               //Now normalize
 
@@ -611,8 +638,11 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
               By = By * Bmag/B_norm;
               }
             else if (pcoord->x3v(k) < rotation_region_z_max){
-              Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_z_min);
-              By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+              // Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+              // By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+
+              Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x3v(k) - rotation_region_z_min);
+              By = Bhy_norm + By_slope_norm * ( pcoord->x3v(k) - rotation_region_z_min);
 
               //Now normalize
 
