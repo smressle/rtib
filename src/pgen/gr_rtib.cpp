@@ -222,7 +222,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
   // 2D PROBLEM ---------------------------------------------------------------
 
   if (block_size.nx3 == 1) {
-    grav_acc = phydro->hsrc.GetG2();
+    grav_acc = pin->GetReal("coord", "grav_acc");
     for (int k=ks; k<=ke; k++) {
       for (int j=js; j<=je; j++) {
         pcoord->CellMetric(k, j, il, iu, g, gi);
@@ -259,8 +259,16 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           phydro->w(IDN,k,j,i) = den;
           phydro->w(IM1,k,j,i) = 0.0;
           v2 *= amp*cs;
-          Real Lorentz = 1.0/std::sqrt(1.0 - SQR(v2));
-          phydro->w(IM2,k,j,i) = v2*Lorentz;
+          Real Lorentz = 1.0/std::sqrt(-g(I00) - SQR(v2));
+          Real uu0 = Lorentz;
+          Real uu1 = 0.0;
+          Real uu2 = v2*Lorentz;
+          Real uu3 = 0.0;
+
+          Real uu1_ = uu1 - gi(I01,i) / gi(I00,i) * uu0;
+          Real uu2_ = uu2 - gi(I02,i) / gi(I00,i) * uu0;
+          Real uu3_ = uu3 - gi(I03,i) / gi(I00,i) * uu0;
+          phydro->w(IM2,k,j,i) = uu2_;
           phydro->w(IM3,k,j,i) = 0.0;
           if (NON_BAROTROPIC_EOS) {
             phydro->w(IEN,k,j,i) = press;
@@ -481,7 +489,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
     // 3D PROBLEM ----------------------------------------------------------------
 
   } else {
-    grav_acc = phydro->hsrc.GetG3();
+    pin->GetReal("coord", "grav_acc");
     for (int k=ks; k<=ke; k++) {
       for (int j=js; j<=je; j++) {
         pcoord->CellMetric(k, j, il, iu, g, gi);
@@ -527,9 +535,19 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           phydro->w(IM2,k,j,i) = 0.0;
           v3 *= (amp*cs);
 
-          Real Lorentz = 1.0/std::sqrt(1.0 - SQR(v3));
+          Real Lorentz = 1.0/std::sqrt(-g(I00) - SQR(v3));
 
-          phydro->w(IM3,k,j,i) = v3 * Lorentz;
+          // Real Lorentz = 1.0/std::sqrt(-g(I00) - SQR(v2));
+          Real uu0 = Lorentz;
+          Real uu1 = 0.0;
+          Real uu2 = 0.0;
+          Real uu3 = v3 * Lorentz;
+
+          Real uu1_ = uu1 - gi(I01,i) / gi(I00,i) * uu0;
+          Real uu2_ = uu2 - gi(I02,i) / gi(I00,i) * uu0;
+          Real uu3_ = uu3 - gi(I03,i) / gi(I00,i) * uu0;
+
+          phydro->w(IM3,k,j,i) = uu3_;
           if (NON_BAROTROPIC_EOS) {
             phydro->w(IPR,k,j,i) =  press;
 
