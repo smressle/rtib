@@ -222,7 +222,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
   // 2D PROBLEM ---------------------------------------------------------------
 
   if (block_size.nx3 == 1) {
-    grav_acc = pin->GetReal("coord", "grav_acc");
+    grav_acc = pin->GetReal("problem", "grav_acc");
     for (int k=ks; k<=ke; k++) {
       for (int j=js; j<=je; j++) {
         pcoord->CellMetric(k, j, il, iu, g, gi);
@@ -489,7 +489,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
     // 3D PROBLEM ----------------------------------------------------------------
 
   } else {
-    pin->GetReal("coord", "grav_acc");
+    pin->GetReal("problem", "grav_acc");
     for (int k=ks; k<=ke; k++) {
       for (int j=js; j<=je; j++) {
         pcoord->CellMetric(k, j, il, iu, g, gi);
@@ -1065,9 +1065,9 @@ void linear_metric_3D(Real x1, Real x2, Real x3, ParameterInput *pin,
   Real y = x2;
   Real z = x3;
 
-  grav_acc = pin->GetReal("coord", "grav_acc");
+  grav_acc = pin->GetReal("problem", "grav_acc");
 
-  Real z0 = pin->GetReal("coord", "z0");
+  Real z0 = pin->GetReal("problem", "z0");
 
   Real Phi = grav_acc*(z-z0);
 
@@ -1151,10 +1151,10 @@ void linear_metric_2D(Real x1, Real x2, Real x3, ParameterInput *pin,
   Real y = x2;
   Real z = x3;
 
-  grav_acc = pin->GetReal("coord", "grav_acc");
+  grav_acc = pin->GetReal("problem", "grav_acc");
 
 
-  Real y0 = pin->GetReal("coord", "y0");
+  Real y0 = pin->GetReal("problem", "y0");
   Real Phi = grav_acc*(y-y0);
   // Set covariant components
   g(I00) = -(1.0 -2.0*Phi);
