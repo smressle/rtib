@@ -432,13 +432,14 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             // (b^0)^2 =  Bmag^2/g_00 -A_norm^2 /g_00 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33)  
 
             // A_norm^2 /(u^0 g_00)^2  (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 = Bmag^2/g_00 -A_norm^2/g_00 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33)
-            // A_norm^2/g_00 (1/(u^0)^2 (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 +   (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
-            // A_norm = Bmag sqrt(g_00/ ... )
+            // A_norm^2 (1/(u^0)^2/g_00 (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 +   (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
+            // A_norm = Bmag sqrt(1/ ... )
 
-            Real num_sq = SQR(Bmag) * g(I00,i);
+            Real num_sq = SQR(Bmag) ;
 
-            Real denom_sq = 1.0/SQR(u0) * SQR(u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) )
+            Real denom_sq = 1.0/SQR(u0)/g(I00) * SQR(u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) )
                              + ( SQR(Bx) * g(I11,i) + SQR(By) * g(I22,i) + SQR(Bz) * g(I33,i) );
+
 
             Real A_norm = std::sqrt(num_sq/denom_sq);
 
@@ -560,13 +561,14 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             // (b^0)^2 =  Bmag^2/g_00 -A_norm^2 /g_00 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33)  
 
             // A_norm^2 /(u^0 g_00)^2  (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 = Bmag^2/g_00 -A_norm^2/g_00 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33)
-            // A_norm^2/g_00 (1/(u^0)^2 (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 +   (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
-            // A_norm = Bmag sqrt(g_00/ ... )
+            // A_norm^2 (1/(u^0)^2/g_00 (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 +   (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
+            // A_norm = Bmag sqrt(1/ ... )
 
-            Real num_sq = SQR(Bmag) * g(I00,i);
+            Real num_sq = SQR(Bmag) ;
 
-            Real denom_sq = 1.0/SQR(u0) * SQR(u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) )
+            Real denom_sq = 1.0/SQR(u0)/g(I00) * SQR(u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) )
                              + ( SQR(Bx) * g(I11,i) + SQR(By) * g(I22,i) + SQR(Bz) * g(I33,i) );
+
 
             Real A_norm = std::sqrt(num_sq/denom_sq);
 
@@ -812,13 +814,14 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             // (b^0)^2 =  Bmag^2/g_00 -A_norm^2 /g_00 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33)  
 
             // A_norm^2 /(u^0 g_00)^2  (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 = Bmag^2/g_00 -A_norm^2/g_00 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33)
-            // A_norm^2/g_00 (1/(u^0)^2 (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 +   (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
-            // A_norm = Bmag sqrt(g_00/ ... )
+            // A_norm^2 (1/(u^0)^2/g_00 (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 +   (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
+            // A_norm = Bmag sqrt(1/ ... )
 
-            Real num_sq = SQR(Bmag) * g(I00,i);
+            Real num_sq = SQR(Bmag) ;
 
-            Real denom_sq = 1.0/SQR(u0) * SQR(u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) )
+            Real denom_sq = 1.0/SQR(u0)/g(I00) * SQR(u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) )
                              + ( SQR(Bx) * g(I11,i) + SQR(By) * g(I22,i) + SQR(Bz) * g(I33,i) );
+
 
             Real A_norm = std::sqrt(num_sq/denom_sq);
 
@@ -915,15 +918,15 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
             // b^0 = - A_norm/(u^0 g_00) (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)
             // (b^0)^2 =  Bmag^2/g_00 -A_norm^2 /g_00 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33)  
-
             // A_norm^2 /(u^0 g_00)^2  (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 = Bmag^2/g_00 -A_norm^2/g_00 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33)
-            // A_norm^2/g_00 (1/(u^0)^2 (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 +   (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
-            // A_norm = Bmag sqrt(g_00/ ... )
+            // A_norm^2 (1/(u^0)^2/g_00 (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 +   (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
+            // A_norm = Bmag sqrt(1/ ... )
 
-            Real num_sq = SQR(Bmag) * g(I00,i);
+            Real num_sq = SQR(Bmag) ;
 
-            Real denom_sq = 1.0/SQR(u0) * SQR(u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) )
+            Real denom_sq = 1.0/SQR(u0)/g(I00) * SQR(u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) )
                              + ( SQR(Bx) * g(I11,i) + SQR(By) * g(I22,i) + SQR(Bz) * g(I33,i) );
+
 
             Real A_norm = std::sqrt(num_sq/denom_sq);
 
