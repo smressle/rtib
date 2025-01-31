@@ -269,10 +269,10 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           // u^0^2 (g_00 + g_11 v1 + g_22 v2 + g_33 v3) = -1
           // u^0 = sqrt[ -1/( g_00 + g_11 v + g_22 v2 + g_33 v3) ]
 
-          u0 = std::sqrt( -1 / ( g(I00) + g(I11)*v1 + g(I22)*v2 + g(I33)*v3   )   ); 
-          u1 = u0*v1;
-          u2 = u0*v2;
-          u3 = u0*v3;
+          Real u0 = std::sqrt( -1 / ( g(I00) + g(I11)*v1 + g(I22)*v2 + g(I33)*v3   )   ); 
+          Real u1 = u0*v1;
+          Real u2 = u0*v2;
+          Real u3 = u0*v3;
 
           // Real Lorentz = 1.0/std::sqrt(-g(I00) - SQR(v2));
           // Real u0 = Lorentz;
@@ -344,7 +344,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       // Real Bx_slope = (Bcx - Bhx) / ( length_of_rotation_region) ; 
       // Real Bz_slope = (Bcz - Bhz) / ( length_of_rotation_region) ; 
 
-      Real Bx, Bz;
+      Real Bx, Bz,By;
 
 
       
@@ -402,6 +402,53 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
               Bx = Bcx * Bmag/Bc;
               Bz = Bcz * Bmag/Bc;
             }
+            By = 0;
+
+
+            // Calculate normal-frame Lorentz factor
+            Real uu1 = phydro->w(IVX,k,j,i);
+            Real uu2 = phydro->w(IVY,k,j,i);
+            Real uu3 = phydro->w(IVZ,k,j,i);
+            Real tmp = g(I11,i) * SQR(uu1) + 2.0 * g(I12,i) * uu1 * uu2
+                + 2.0 * g(I13,i) * uu1 * uu3 + g(I22,i) * SQR(uu2)
+                + 2.0 * g(I23,i) * uu2 * uu3 + g(I33,i) * SQR(uu3);
+            Real gamma = std::sqrt(1.0 + tmp);
+
+            // Calculate 4-velocity
+            Real alpha = std::sqrt(-1.0 / gi(I00,i));
+            Real u0 = gamma / alpha;
+            Real u1 = uu1 - alpha * gamma * gi(I01,i);
+            Real u2 = uu2 - alpha * gamma * gi(I02,i);
+            Real u3 = uu3 - alpha * gamma * gi(I03,i);
+
+            //Assume b^\mu = (b^0, A_norm Bx, A_norm By, A_norm Bz)
+            //Use b^\mu b_\mu = B_mag^2 and b^\mu u^\nu g_\mu \nu =0
+            // b^0 u^0 g_00 + A_norm( u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33) = 0
+            // b^0 b^0 g_00 + A_norm^2 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
+
+            // solve for b^0 and A_norm
+
+            // b^0 = - A_norm/(u^0 g_00) (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)
+            // (b^0)^2 =  Bmag^2/g_00 -A_norm^2 /g_00 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33)  
+
+            // A_norm^2 /(u^0 g_00)^2  (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 = Bmag^2/g_00 -A_norm^2/g_00 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33)
+            // A_norm^2/g_00 (1/(u^0)^2 (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 +   (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
+            // A_norm = Bmag sqrt(g_00/ ... )
+
+            Real num_sq = SQR(Bmag) * g(I00);
+
+            Real denom_sq = 1.0/SQR(u0) * SQR(u1 * Bx * g(I11) + u2 * By * g(I22) + u3 * Bz * g(I33) )
+                             + ( SQR(Bx) * g(I11) + SQR(By) * g(I22) + SQR(Bz) * g(I33) );
+
+            Real A_norm = std::sqrt(num_sq/denom_sq);
+
+            Real b0 = -A_norm / (u0*g(I00)) * ( u1 * Bx * g(I11) + u2 * By * g(I22) + u3 * Bz * g(I33) );
+
+            Real b1 = A_norm * Bx;
+            Real b2 = A_norm * By;
+            Real b3 = A_norm * Bz;
+
+            //now convert back to three vector (Equation 17 Gammie+ 2003)
 
             // if (pcoord->x2v(j) < (L/2.0  +  pmy_mesh->mesh_size.x2min) ){
             //   Bx = Bhx * Bmag/Bh;
@@ -414,11 +461,10 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
             Real Lorentz = 1.0/std::sqrt(-g(I00) - SQR(v2));
 
-            Real b
             Real b1 = Bx;
             Real b2 = 0.0;
             Real b3 = Bz; 
-            pfield->b.x1f(k,j,i) = Bx;
+            pfield->b.x1f(k,j,i) = b1 * u0 - b0 * u1;
           }
         }
       }
@@ -485,17 +531,54 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
               Bz = Bcz * Bmag/Bc;
             }
 
+            By = 0;
 
+                        // Calculate normal-frame Lorentz factor
+            Real uu1 = phydro->w(IVX,k,j,i);
+            Real uu2 = phydro->w(IVY,k,j,i);
+            Real uu3 = phydro->w(IVZ,k,j,i);
+            Real tmp = g(I11,i) * SQR(uu1) + 2.0 * g(I12,i) * uu1 * uu2
+                + 2.0 * g(I13,i) * uu1 * uu3 + g(I22,i) * SQR(uu2)
+                + 2.0 * g(I23,i) * uu2 * uu3 + g(I33,i) * SQR(uu3);
+            Real gamma = std::sqrt(1.0 + tmp);
 
-            // if (pcoord->x2v(j) < (L/2.0  +  pmy_mesh->mesh_size.x2min) ){
-            //   Bx = Bhx * Bmag/Bh;
-            //   Bz = Bhz * Bmag/Bh;
-            // }
-            // else{
-            //   Bx = Bcx * Bmag/Bc;
-            //   Bz = Bcz * Bmag/Bc;
-            // }
-            pfield->b.x3f(k,j,i) = Bz;
+            // Calculate 4-velocity
+            Real alpha = std::sqrt(-1.0 / gi(I00,i));
+            Real u0 = gamma / alpha;
+            Real u1 = uu1 - alpha * gamma * gi(I01,i);
+            Real u2 = uu2 - alpha * gamma * gi(I02,i);
+            Real u3 = uu3 - alpha * gamma * gi(I03,i);
+
+            //Assume b^\mu = (b^0, A_norm Bx, A_norm By, A_norm Bz)
+            //Use b^\mu b_\mu = B_mag^2 and b^\mu u^\nu g_\mu \nu =0
+            // b^0 u^0 g_00 + A_norm( u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33) = 0
+            // b^0 b^0 g_00 + A_norm^2 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
+
+            // solve for b^0 and A_norm
+
+            // b^0 = - A_norm/(u^0 g_00) (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)
+            // (b^0)^2 =  Bmag^2/g_00 -A_norm^2 /g_00 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33)  
+
+            // A_norm^2 /(u^0 g_00)^2  (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 = Bmag^2/g_00 -A_norm^2/g_00 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33)
+            // A_norm^2/g_00 (1/(u^0)^2 (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 +   (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
+            // A_norm = Bmag sqrt(g_00/ ... )
+
+            Real num_sq = SQR(Bmag) * g(I00);
+
+            Real denom_sq = 1.0/SQR(u0) * SQR(u1 * Bx * g(I11) + u2 * By * g(I22) + u3 * Bz * g(I33) )
+                             + ( SQR(Bx) * g(I11) + SQR(By) * g(I22) + SQR(Bz) * g(I33) );
+
+            Real A_norm = std::sqrt(num_sq/denom_sq);
+
+            Real b0 = -A_norm / (u0*g(I00)) * ( u1 * Bx * g(I11) + u2 * By * g(I22) + u3 * Bz * g(I33) );
+
+            Real b1 = A_norm * Bx;
+            Real b2 = A_norm * By;
+            Real b3 = A_norm * Bz;
+
+            //now convert back to three vector (Equation 17 Gammie+ 2003)
+
+            pfield->b.x3f(k,j,i) = b3 * u0 - b0 * u3;;
           }
         }
       }
@@ -695,6 +778,23 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             }
 
             Bz = 0.0;
+
+            // Calculate normal-frame Lorentz factor
+            Real uu1 = phydro->w(IVX,k,j,i);
+            Real uu2 = phydro->w(IVY,k,j,i);
+            Real uu3 = phydro->w(IVZ,k,j,i);
+            Real tmp = g(I11,i) * SQR(uu1) + 2.0 * g(I12,i) * uu1 * uu2
+                + 2.0 * g(I13,i) * uu1 * uu3 + g(I22,i) * SQR(uu2)
+                + 2.0 * g(I23,i) * uu2 * uu3 + g(I33,i) * SQR(uu3);
+            Real gamma = std::sqrt(1.0 + tmp);
+
+            // Calculate 4-velocity
+            Real alpha = std::sqrt(-1.0 / gi(I00,i));
+            Real u0 = gamma / alpha;
+            Real u1 = uu1 - alpha * gamma * gi(I01,i);
+            Real u2 = uu2 - alpha * gamma * gi(I02,i);
+            Real u3 = uu3 - alpha * gamma * gi(I03,i);
+
             //Assume b^\mu = (b^0, A_norm Bx, A_norm By, A_norm Bz)
             //Use b^\mu b_\mu = B_mag^2 and b^\mu u^\nu g_\mu \nu =0
             // b^0 u^0 g_00 + A_norm( u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33) = 0
@@ -724,7 +824,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
             //now convert back to three vector (Equation 17 Gammie+ 2003)
    
-            pfield->b.x1f(k,j,i) = b1 * u0 - b1 * u2;
+            pfield->b.x1f(k,j,i) = b1 * u0 - b0 * u1;
           }
         }
       }
