@@ -223,10 +223,10 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
   if (block_size.nx3 == 1) {
     grav_acc = pin->GetReal("problem", "grav_acc");
-    for (int k=ks; k<=ke; k++) {
-      for (int j=js; j<=je; j++) {
+    for (int k=kl; k<=ku; k++) {
+      for (int j=jl; j<=ju; j++) {
         pcoord->CellMetric(k, j, il, iu, g, gi);
-        for (int i=is; i<=ie; i++) {
+        for (int i=il; i<=iu; i++) {
           Real dh = 1.0;
           Real dc = dh * drat;
           Real den=1.0;
@@ -596,11 +596,11 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
     // 3D PROBLEM ----------------------------------------------------------------
 
   } else {
-    pin->GetReal("problem", "grav_acc");
-    for (int k=ks; k<=ke; k++) {
-      for (int j=js; j<=je; j++) {
+    grav_acc = pin->GetReal("problem", "grav_acc");
+    for (int k=kl; k<=ku; k++) {
+      for (int j=jl; j<=ju; j++) {
         pcoord->CellMetric(k, j, il, iu, g, gi);
-        for (int i=is; i<=ie; i++) {
+        for (int i=il; i<=iu; i++) {
 
           // Real L = pmy_mesh->mesh_size.x3max - pmy_mesh->mesh_size.x3min;
           Real den=1.0;
