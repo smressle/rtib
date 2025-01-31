@@ -459,11 +459,11 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             //   Bz = Bcz * Bmag/Bc;
             // }
 
-            Real Lorentz = 1.0/std::sqrt(-g(I00) - SQR(v2));
+            // Real Lorentz = 1.0/std::sqrt(-g(I00) - SQR(v2));
 
-            Real b1 = Bx;
-            Real b2 = 0.0;
-            Real b3 = Bz; 
+            // Real b1 = Bx;
+            // Real b2 = 0.0;
+            // Real b3 = Bz; 
             pfield->b.x1f(k,j,i) = b1 * u0 - b0 * u1;
           }
         }
