@@ -269,12 +269,12 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           // u^0^2 (g_00 + g_11 v1 + g_22 v2 + g_33 v3) = -1
           // u^0 = sqrt[ -1/( g_00 + g_11 v + g_22 v2 + g_33 v3) ]
 
-          Real u0 = std::sqrt( -1 / ( g(I00) + g(I11)*v1 + g(I22)*v2 + g(I33)*v3   )   ); 
+          Real u0 = std::sqrt( -1 / ( g(I00,i) + g(I11,i)*v1 + g(I22,i)*v2 + g(I33,i)*v3   )   ); 
           Real u1 = u0*v1;
           Real u2 = u0*v2;
           Real u3 = u0*v3;
 
-          // Real Lorentz = 1.0/std::sqrt(-g(I00) - SQR(v2));
+          // Real Lorentz = 1.0/std::sqrt(-g(I00,i) - SQR(v2));
           // Real u0 = Lorentz;
           // Real u1 = 0.0;
           // Real u2 = v2*Lorentz;
@@ -435,14 +435,14 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             // A_norm^2/g_00 (1/(u^0)^2 (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 +   (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
             // A_norm = Bmag sqrt(g_00/ ... )
 
-            Real num_sq = SQR(Bmag) * g(I00);
+            Real num_sq = SQR(Bmag) * g(I00,i);
 
-            Real denom_sq = 1.0/SQR(u0) * SQR(u1 * Bx * g(I11) + u2 * By * g(I22) + u3 * Bz * g(I33) )
-                             + ( SQR(Bx) * g(I11) + SQR(By) * g(I22) + SQR(Bz) * g(I33) );
+            Real denom_sq = 1.0/SQR(u0) * SQR(u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) )
+                             + ( SQR(Bx) * g(I11,i) + SQR(By) * g(I22,i) + SQR(Bz) * g(I33,i) );
 
             Real A_norm = std::sqrt(num_sq/denom_sq);
 
-            Real b0 = -A_norm / (u0*g(I00)) * ( u1 * Bx * g(I11) + u2 * By * g(I22) + u3 * Bz * g(I33) );
+            Real b0 = -A_norm / (u0*g(I00,i)) * ( u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) );
 
             Real b1 = A_norm * Bx;
             Real b2 = A_norm * By;
@@ -459,7 +459,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             //   Bz = Bcz * Bmag/Bc;
             // }
 
-            // Real Lorentz = 1.0/std::sqrt(-g(I00) - SQR(v2));
+            // Real Lorentz = 1.0/std::sqrt(-g(I00,i) - SQR(v2));
 
             // Real b1 = Bx;
             // Real b2 = 0.0;
@@ -563,14 +563,14 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             // A_norm^2/g_00 (1/(u^0)^2 (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 +   (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
             // A_norm = Bmag sqrt(g_00/ ... )
 
-            Real num_sq = SQR(Bmag) * g(I00);
+            Real num_sq = SQR(Bmag) * g(I00,i);
 
-            Real denom_sq = 1.0/SQR(u0) * SQR(u1 * Bx * g(I11) + u2 * By * g(I22) + u3 * Bz * g(I33) )
-                             + ( SQR(Bx) * g(I11) + SQR(By) * g(I22) + SQR(Bz) * g(I33) );
+            Real denom_sq = 1.0/SQR(u0) * SQR(u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) )
+                             + ( SQR(Bx) * g(I11,i) + SQR(By) * g(I22,i) + SQR(Bz) * g(I33,i) );
 
             Real A_norm = std::sqrt(num_sq/denom_sq);
 
-            Real b0 = -A_norm / (u0*g(I00)) * ( u1 * Bx * g(I11) + u2 * By * g(I22) + u3 * Bz * g(I33) );
+            Real b0 = -A_norm / (u0*g(I00,i)) * ( u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) );
 
             Real b1 = A_norm * Bx;
             Real b2 = A_norm * By;
@@ -582,7 +582,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             pfield->b.x3f(k,j,i) = b3 * u0 - b0 * u3;
 
             if (std::isnan(pfield->b.x3f(k,j,i))){
-              fprintf(stderr,"NAN in B3!!\n b3: %g u0: %g b0: %g u3: %g\n g: %g %g %g %g \n",b3,u0,b0,u3, g(I00),g(I11),g(I22),g(I33));
+              fprintf(stderr,"NAN in B3!!\n b3: %g u0: %g b0: %g u3: %g\n g: %g %g %g %g \n",b3,u0,b0,u3, g(I00,i),g(I11,i),g(I22,i),g(I33,i));
             }
           }
         }
@@ -649,12 +649,12 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           v3 *= (amp*cs);
 
 
-          Real u0 = std::sqrt( -1 / ( g(I00) + g(I11)*v1 + g(I22)*v2 + g(I33)*v3   )   ); 
+          Real u0 = std::sqrt( -1 / ( g(I00,i) + g(I11,i)*v1 + g(I22,i)*v2 + g(I33,i)*v3   )   ); 
           Real u1 = u0*v1;
           Real u2 = u0*v2;
           Real u3 = u0*v3;
 
-          // Real Lorentz = 1.0/std::sqrt(-g(I00) - SQR(v2));
+          // Real Lorentz = 1.0/std::sqrt(-g(I00,i) - SQR(v2));
           // Real u0 = Lorentz;
           // Real u1 = 0.0;
           // Real u2 = v2*Lorentz;
@@ -665,9 +665,9 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           Real uu2 = u2 - gi(I02,i) / gi(I00,i) * u0;
           Real uu3 = u3 - gi(I03,i) / gi(I00,i) * u0;
 
-          // Real Lorentz = 1.0/std::sqrt(-g(I00) - SQR(v3));
+          // Real Lorentz = 1.0/std::sqrt(-g(I00,i) - SQR(v3));
 
-          // // Real Lorentz = 1.0/std::sqrt(-g(I00) - SQR(v2));
+          // // Real Lorentz = 1.0/std::sqrt(-g(I00,i) - SQR(v2));
           // Real u0 = Lorentz;
           // Real u1 = 0.0;
           // Real u2 = 0.0;
@@ -814,14 +814,14 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             // A_norm^2/g_00 (1/(u^0)^2 (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 +   (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
             // A_norm = Bmag sqrt(g_00/ ... )
 
-            Real num_sq = SQR(Bmag) * g(I00);
+            Real num_sq = SQR(Bmag) * g(I00,i);
 
-            Real denom_sq = 1.0/SQR(u0) * SQR(u1 * Bx * g(I11) + u2 * By * g(I22) + u3 * Bz * g(I33) )
-                             + ( SQR(Bx) * g(I11) + SQR(By) * g(I22) + SQR(Bz) * g(I33) );
+            Real denom_sq = 1.0/SQR(u0) * SQR(u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) )
+                             + ( SQR(Bx) * g(I11,i) + SQR(By) * g(I22,i) + SQR(Bz) * g(I33,i) );
 
             Real A_norm = std::sqrt(num_sq/denom_sq);
 
-            Real b0 = -A_norm / (u0*g(I00)) * ( u1 * Bx * g(I11) + u2 * By * g(I22) + u3 * Bz * g(I33) );
+            Real b0 = -A_norm / (u0*g(I00,i)) * ( u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) );
 
             Real b1 = A_norm * Bx;
             Real b2 = A_norm * By;
@@ -919,14 +919,14 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             // A_norm^2/g_00 (1/(u^0)^2 (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 +   (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
             // A_norm = Bmag sqrt(g_00/ ... )
 
-            Real num_sq = SQR(Bmag) * g(I00);
+            Real num_sq = SQR(Bmag) * g(I00,i);
 
-            Real denom_sq = 1.0/SQR(u0) * SQR(u1 * Bx * g(I11) + u2 * By * g(I22) + u3 * Bz * g(I33) )
-                             + ( SQR(Bx) * g(I11) + SQR(By) * g(I22) + SQR(Bz) * g(I33) );
+            Real denom_sq = 1.0/SQR(u0) * SQR(u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) )
+                             + ( SQR(Bx) * g(I11,i) + SQR(By) * g(I22,i) + SQR(Bz) * g(I33,i) );
 
             Real A_norm = std::sqrt(num_sq/denom_sq);
 
-            Real b0 = -A_norm / (u0*g(I00)) * ( u1 * Bx * g(I11) + u2 * By * g(I22) + u3 * Bz * g(I33) );
+            Real b0 = -A_norm / (u0*g(I00,i)) * ( u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) );
 
             Real b1 = A_norm * Bx;
             Real b2 = A_norm * By;
