@@ -578,7 +578,12 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
             //now convert back to three vector (Equation 17 Gammie+ 2003)
 
-            pfield->b.x3f(k,j,i) = b3 * u0 - b0 * u3;;
+
+            pfield->b.x3f(k,j,i) = b3 * u0 - b0 * u3;
+
+            if std::isnan(pfield->b.x3f(k,j,i)){
+              fprintf(stderr,"NAN in B3!!\n b3: %g u0: %g b0: %g u3: %g\n g: %g %g %g %g \n",b3,u0,b0,u3, g(I00),g(I11),g(I22),g(I33));
+            }
           }
         }
       }
