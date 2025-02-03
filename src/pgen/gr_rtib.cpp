@@ -1387,7 +1387,7 @@ void linear_metric_2D(Real x1, Real x2, Real x3, ParameterInput *pin,
 
 
   Real y0 = pin->GetReal("problem", "y0");
-  Real Phi = -grav_acc*(y-y0);
+  Real Phi = grav_acc*(y-y0);
   // Set covariant components
   g(I00) = -(1.0 -2.0*Phi);
   g(I01) = 0;
