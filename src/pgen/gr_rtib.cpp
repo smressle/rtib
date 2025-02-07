@@ -1319,16 +1319,16 @@ void linear_metric_3D(Real x1, Real x2, Real x3, ParameterInput *pin,
 
 
   // // Set contravariant components
-  g_inv(I00) = g(I33);
+  g_inv(I00) = -g(I33);
   g_inv(I01) = 0;
   g_inv(I02) = 0;
-  g_inv(I03) = -g(I03);
+  g_inv(I03) = g(I03);
   g_inv(I11) = 1.0;
   g_inv(I12) = 0;
   g_inv(I13) = 0;
   g_inv(I22) = 1.0;
   g_inv(I23) = 0.0;
-  g_inv(I33) = g(I00);
+  g_inv(I33) = -g(I00);
 
 
 
@@ -1404,14 +1404,14 @@ void linear_metric_2D(Real x1, Real x2, Real x3, ParameterInput *pin,
 
 
   // // Set contravariant components
-  g_inv(I00) = g(I22);
+  g_inv(I00) = -g(I22);
   g_inv(I01) = 0;
-  g_inv(I02) = -g(I02);
+  g_inv(I02) = g(I02);
   g_inv(I03) = 0.0;
   g_inv(I11) = 1.0;
   g_inv(I12) = 0;
   g_inv(I13) = 0;
-  g_inv(I22) = g(I00);
+  g_inv(I22) = -g(I00);
   g_inv(I23) = 0.0;
   g_inv(I33) = 1.0;
 
