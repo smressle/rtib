@@ -1307,28 +1307,28 @@ void linear_metric_3D(Real x1, Real x2, Real x3, ParameterInput *pin,
   g(I00) = -(1.0 -2.0*Phi);
   g(I01) = 0;
   g(I02) = 0;
-  g(I03) = 0;
+  g(I03) = 2.0 * Phi;
   g(I11) = 1.0;
   g(I12) = 0;
   g(I13) = 0;
   g(I22) = 1.0 ;
   g(I23) = 0;
-  g(I33) = 1.0 ;
+  g(I33) = 1.0 + 2.0 * Phi ;
 
 
 
 
   // // Set contravariant components
-  g_inv(I00) = 1.0/g(I00);
+  g_inv(I00) = g(I33);
   g_inv(I01) = 0;
   g_inv(I02) = 0;
-  g_inv(I03) = 0;
+  g_inv(I03) = -g(I03);
   g_inv(I11) = 1.0;
   g_inv(I12) = 0;
   g_inv(I13) = 0;
   g_inv(I22) = 1.0;
   g_inv(I23) = 0.0;
-  g_inv(I33) = 1.0;
+  g_inv(I33) = g(I00);
 
 
 
@@ -1361,13 +1361,13 @@ void linear_metric_3D(Real x1, Real x2, Real x3, ParameterInput *pin,
   dg_dx3(I00) = 2.0 * grav_acc;
   dg_dx3(I01) = 0;
   dg_dx3(I02) = 0;
-  dg_dx3(I03) = 0;
+  dg_dx3(I03) = 2.0 * grav_acc;
   dg_dx3(I11) = 0;
   dg_dx3(I12) = 0;
   dg_dx3(I13) = 0;
   dg_dx3(I22) = 0;
   dg_dx3(I23) = 0;
-  dg_dx3(I33) = 0;
+  dg_dx3(I33) = 2.0 * grav_acc;
 
 
 
@@ -1391,12 +1391,12 @@ void linear_metric_2D(Real x1, Real x2, Real x3, ParameterInput *pin,
   // Set covariant components
   g(I00) = -(1.0 -2.0*Phi);
   g(I01) = 0;
-  g(I02) = 0;
+  g(I02) = 2.0*Phi;
   g(I03) = 0;
   g(I11) = 1.0;
   g(I12) = 0;
   g(I13) = 0;
-  g(I22) = 1.0 ;
+  g(I22) = 1.0 + 2.0 * Phi;
   g(I23) = 0;
   g(I33) = 1.0 ;
 
@@ -1404,14 +1404,14 @@ void linear_metric_2D(Real x1, Real x2, Real x3, ParameterInput *pin,
 
 
   // // Set contravariant components
-  g_inv(I00) = 1.0/g(I00);
+  g_inv(I00) = g(I22);
   g_inv(I01) = 0;
-  g_inv(I02) = 0;
-  g_inv(I03) = 0;
+  g_inv(I02) = -g(I02);
+  g_inv(I03) = 0.0;
   g_inv(I11) = 1.0;
   g_inv(I12) = 0;
   g_inv(I13) = 0;
-  g_inv(I22) = 1.0;
+  g_inv(I22) = g(I00);
   g_inv(I23) = 0.0;
   g_inv(I33) = 1.0;
 
@@ -1433,12 +1433,12 @@ void linear_metric_2D(Real x1, Real x2, Real x3, ParameterInput *pin,
   // Set y-derivatives of covariant components
   dg_dx2(I00) = 2.0 * grav_acc;
   dg_dx2(I01) = 0;
-  dg_dx2(I02) = 0;
+  dg_dx2(I02) = 2.0 * grav_acc;
   dg_dx2(I03) = 0;
   dg_dx2(I11) = 0;
   dg_dx2(I12) = 0;
   dg_dx2(I13) = 0;
-  dg_dx2(I22) = 0;
+  dg_dx2(I22) = 2.0 * grav_acc;
   dg_dx2(I23) = 0;
   dg_dx2(I33) = 0;
 
