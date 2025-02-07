@@ -607,7 +607,7 @@ void FaceCenteredBoundaryVariable::SetBoundarySameLevel(Real *buf,
     Real sign = flip_across_pole_[IB1] ? -1.0 : 1.0;
     for (int k=sk; k<=ek; ++k) {
       for (int j=ej; j>=sj; --j) {
-#pragma omp simd linear(p)
+// #pragma omp simd linear(p)
         for (int i=si; i<=ei; ++i)
           (*var_fc).x1f(k,j,i) = sign*buf[p++];
       }
@@ -633,7 +633,7 @@ void FaceCenteredBoundaryVariable::SetBoundarySameLevel(Real *buf,
     Real sign = flip_across_pole_[IB2] ? -1.0 : 1.0;
     for (int k=sk; k<=ek; ++k) {
       for (int j=ej; j>=sj; --j) {
-#pragma omp simd linear(p)
+// #pragma omp simd linear(p)
         for (int i=si; i<=ei; ++i)
           (*var_fc).x2f(k,j,i) = sign*buf[p++];
       }
@@ -642,7 +642,7 @@ void FaceCenteredBoundaryVariable::SetBoundarySameLevel(Real *buf,
     BufferUtility::UnpackData(buf, (*var_fc).x2f, si, ei, sj, ej, sk, ek, p);
   }
   if (pmb->block_size.nx2 == 1) { // 1D
-#pragma omp simd
+// #pragma omp simd
     for (int i=si; i<=ei; ++i)
       (*var_fc).x2f(sk,sj+1,i) = (*var_fc).x2f(sk,sj,i);
   }
@@ -664,7 +664,7 @@ void FaceCenteredBoundaryVariable::SetBoundarySameLevel(Real *buf,
     Real sign = flip_across_pole_[IB3] ? -1.0 : 1.0;
     for (int k=sk; k<=ek; ++k) {
       for (int j=ej; j>=sj; --j) {
-#pragma omp simd linear(p)
+// #pragma omp simd linear(p)
         for (int i=si; i<=ei; ++i)
           (*var_fc).x3f(k,j,i) = sign*buf[p++];
       }
@@ -674,7 +674,7 @@ void FaceCenteredBoundaryVariable::SetBoundarySameLevel(Real *buf,
   }
   if (pmb->block_size.nx3 == 1) { // 1D or 2D
     for (int j=sj; j<=ej; ++j) {
-#pragma omp simd
+// #pragma omp simd
       for (int i=si; i<=ei; ++i)
         (*var_fc).x3f(sk+1,j,i) = (*var_fc).x3f(sk,j,i);
     }
@@ -722,7 +722,7 @@ void FaceCenteredBoundaryVariable::SetBoundaryFromCoarser(Real *buf,
     Real sign = flip_across_pole_[IB1] ? -1.0 : 1.0;
     for (int k=sk; k<=ek; ++k) {
       for (int j=ej; j>=sj; --j) {
-#pragma omp simd linear(p)
+// #pragma omp simd linear(p)
         for (int i=si; i<=ei; ++i)
           coarse_buf.x1f(k,j,i) = sign*buf[p++];
       }
@@ -752,7 +752,7 @@ void FaceCenteredBoundaryVariable::SetBoundaryFromCoarser(Real *buf,
     Real sign = flip_across_pole_[IB2] ? -1.0 : 1.0;
     for (int k=sk; k<=ek; ++k) {
       for (int j=ej; j>=sj; --j) {
-#pragma omp simd linear(p)
+// #pragma omp simd linear(p)
         for (int i=si; i<=ei; ++i)
           coarse_buf.x2f(k,j,i) = sign*buf[p++];
       }
@@ -760,7 +760,7 @@ void FaceCenteredBoundaryVariable::SetBoundaryFromCoarser(Real *buf,
   } else {
     BufferUtility::UnpackData(buf, coarse_buf.x2f, si, ei, sj, ej, sk, ek, p);
     if (pmb->block_size.nx2  ==  1) { // 1D
-#pragma omp simd
+// #pragma omp simd
       for (int i=si; i<=ei; ++i)
         coarse_buf.x2f(sk,sj+1,i) = coarse_buf.x2f(sk,sj,i);
     }
@@ -789,7 +789,7 @@ void FaceCenteredBoundaryVariable::SetBoundaryFromCoarser(Real *buf,
     Real sign = flip_across_pole_[IB3] ? -1.0 : 1.0;
     for (int k=sk; k<=ek; ++k) {
       for (int j=ej; j>=sj; --j) {
-#pragma omp simd linear(p)
+// #pragma omp simd linear(p)
         for (int i=si; i<=ei; ++i)
           coarse_buf.x3f(k,j,i) = sign*buf[p++];
       }
@@ -860,7 +860,7 @@ void FaceCenteredBoundaryVariable::SetBoundaryFromFiner(Real *buf,
     Real sign = flip_across_pole_[IB1] ? -1.0 : 1.0;
     for (int k=sk; k<=ek; ++k) {
       for (int j=ej; j>=sj; --j) {
-#pragma omp simd linear(p)
+// #pragma omp simd linear(p)
         for (int i=si; i<=ei; ++i)
           (*var_fc).x1f(k,j,i) = sign*buf[p++];
       }
@@ -900,7 +900,7 @@ void FaceCenteredBoundaryVariable::SetBoundaryFromFiner(Real *buf,
     Real sign = flip_across_pole_[IB2] ? -1.0 : 1.0;
     for (int k=sk; k<=ek; ++k) {
       for (int j=ej; j>=sj; --j) {
-#pragma omp simd linear(p)
+// #pragma omp simd linear(p)
         for (int i=si; i<=ei; ++i)
           (*var_fc).x2f(k,j,i) = sign*buf[p++];
       }
@@ -909,7 +909,7 @@ void FaceCenteredBoundaryVariable::SetBoundaryFromFiner(Real *buf,
     BufferUtility::UnpackData(buf, (*var_fc).x2f, si, ei, sj, ej, sk, ek, p);
   }
   if (pmb->block_size.nx2 == 1) { // 1D
-#pragma omp simd
+// #pragma omp simd
     for (int i=si; i<=ei; ++i)
       (*var_fc).x2f(sk,sj+1,i) = (*var_fc).x2f(sk,sj,i);
   }
@@ -952,7 +952,7 @@ void FaceCenteredBoundaryVariable::SetBoundaryFromFiner(Real *buf,
     Real sign = flip_across_pole_[IB3] ? -1.0 : 1.0;
     for (int k=sk; k<=ek; ++k) {
       for (int j=ej; j>=sj; --j) {
-#pragma omp simd linear(p)
+// #pragma omp simd linear(p)
         for (int i=si; i<=ei; ++i)
           (*var_fc).x3f(k,j,i) = sign*buf[p++];
       }
@@ -962,7 +962,7 @@ void FaceCenteredBoundaryVariable::SetBoundaryFromFiner(Real *buf,
   }
   if (pmb->block_size.nx3 == 1) { // 1D or 2D
     for (int j=sj; j<=ej; ++j) {
-#pragma omp simd
+// #pragma omp simd
       for (int i=si; i<=ei; ++i)
         (*var_fc).x3f(sk+1,j,i) = (*var_fc).x3f(sk,j,i);
     }

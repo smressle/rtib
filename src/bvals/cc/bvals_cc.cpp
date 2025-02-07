@@ -407,7 +407,7 @@ void CellCenteredBoundaryVariable::SetBoundarySameLevel(Real *buf,
       if (flip_across_pole_ != nullptr) sign = flip_across_pole_[n] ? -1.0 : 1.0;
       for (int k=sk; k<=ek; ++k) {
         for (int j=ej; j>=sj; --j) {
-#pragma omp simd linear(p)
+// #pragma omp simd linear(p)
           for (int i=si; i<=ei; ++i) {
             var(n,k,j,i) = sign * buf[p++];
           }
@@ -472,7 +472,7 @@ void CellCenteredBoundaryVariable::SetBoundaryFromCoarser(Real *buf,
       if (flip_across_pole_ != nullptr) sign = flip_across_pole_[n] ? -1.0 : 1.0;
       for (int k=sk; k<=ek; ++k) {
         for (int j=ej; j>=sj; --j) {
-#pragma omp simd linear(p)
+// #pragma omp simd linear(p)
           for (int i=si; i<=ei; ++i)
             coarse_var(n,k,j,i) = sign * buf[p++];
         }
@@ -546,7 +546,7 @@ void CellCenteredBoundaryVariable::SetBoundaryFromFiner(Real *buf,
       if (flip_across_pole_ != nullptr) sign = flip_across_pole_[n] ? -1.0 : 1.0;
       for (int k=sk; k<=ek; ++k) {
         for (int j=ej; j>=sj; --j) {
-#pragma omp simd linear(p)
+// #pragma omp simd linear(p)
           for (int i=si; i<=ei; ++i)
             var(n,k,j,i) = sign * buf[p++];
         }
