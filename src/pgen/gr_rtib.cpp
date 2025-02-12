@@ -422,6 +422,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             Real u2 = uu2 - alpha * gamma * gi(I02,i);
             Real u3 = uu3 - alpha * gamma * gi(I03,i);
 
+            Real u_0, u_1, u_2, u_3;
+            pcoord->LowerVectorCell(u0, u1, u2, u3, k, j, i, &u_0, &u_1, &u_2, &u_3);
 
             //Assume B^i_new = A_norm B^i
             //Then b^0 and b^i \propto A_norm 
@@ -595,6 +597,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             Real u2 = uu2 - alpha * gamma * gi(I02,i);
             Real u3 = uu3 - alpha * gamma * gi(I03,i);
 
+            Real u_0, u_1, u_2, u_3;
+            pcoord->LowerVectorCell(u0, u1, u2, u3, k, j, i, &u_0, &u_1, &u_2, &u_3);
 
             //Assume B^i_new = A_norm B^i
             //Then b^0 and b^i \propto A_norm 
@@ -876,6 +880,9 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             Real u2 = uu2 - alpha * gamma * gi(I02,i);
             Real u3 = uu3 - alpha * gamma * gi(I03,i);
 
+            Real u_0, u_1, u_2, u_3;
+            pcoord->LowerVectorCell(u0, u1, u2, u3, k, j, i, &u_0, &u_1, &u_2, &u_3);
+
             //Assume B^i_new = A_norm B^i
             //Then b^0 and b^i \propto A_norm 
 
@@ -1006,7 +1013,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             Real u1 = uu1 - alpha * gamma * gi(I01,i);
             Real u2 = uu2 - alpha * gamma * gi(I02,i);
             Real u3 = uu3 - alpha * gamma * gi(I03,i);
-
+            Real u_0, u_1, u_2, u_3;
+            pcoord->LowerVectorCell(u0, u1, u2, u3, k, j, i, &u_0, &u_1, &u_2, &u_3);
 
             //Assume B^i_new = A_norm B^i
             //Then b^0 and b^i \propto A_norm 
