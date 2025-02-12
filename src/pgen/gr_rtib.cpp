@@ -659,10 +659,10 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             pfield->b.x3f(k,j,i) = Bz;
 
 
-            if (std::isnan(pfield->b.x3f(k,j,i))){
-              fprintf(stderr,"NAN in B3!!\n b3: %g u0: %g b0: %g u3: %g\n g: %g %g %g %g \n num_sq: %g denom_sq: %g A_norm: %g ",b3,u0,b0,u3, g(I00,i),g(I11,i),g(I22,i),g(I33,i),
-                              num_sq,denom_sq,A_norm);
-            }
+            // if (std::isnan(pfield->b.x3f(k,j,i))){
+            //   fprintf(stderr,"NAN in B3!!\n b3: %g u0: %g b0: %g u3: %g\n g: %g %g %g %g \n num_sq: %g denom_sq: %g A_norm: %g ",b3,u0,b0,u3, g(I00,i),g(I11,i),g(I22,i),g(I33,i),
+            //                   num_sq,denom_sq,A_norm);
+            // }
           }
         }
       }
