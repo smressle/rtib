@@ -269,7 +269,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           // u^0^2 (g_00 + g_11 v1 + g_22 v2 + g_33 v3) = -1
           // u^0 = sqrt[ -1/( g_00 + g_11 v + g_22 v2 + g_33 v3) ]
 
-          Real u0 = std::sqrt( -1 / ( g(I00,i) + g(I11,i)*v1 + g(I22,i)*v2 + g(I33,i)*v3   )   ); 
+          Real u0 = std::sqrt( -1 / ( g(I00,i) + g(I11,i)*SQR(v1) + g(I22,i)*SQR(v2) + g(I33,i)*SQR(v3) + 
+                                      2.0*g(I01,i)*v1 + 2.0*g(I02)*v2 + 2.0*g(I03,i)*v3  )   ); 
           Real u1 = u0*v1;
           Real u2 = u0*v2;
           Real u3 = u0*v3;
@@ -421,6 +422,45 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             Real u2 = uu2 - alpha * gamma * gi(I02,i);
             Real u3 = uu3 - alpha * gamma * gi(I03,i);
 
+
+            //Assume B^i_new = A_norm B^i
+            //Then b^0 and b^i \propto A_norm 
+
+            // Calculate 4-magnetic field
+            Real bb1 = 0.0, bb2 = 0.0, bb3 = 0.0;
+            Real b0 = 0.0, b1 = 0.0, b2 = 0.0, b3 = 0.0;
+            Real b_0 = 0.0, b_1 = 0.0, b_2 = 0.0, b_3 = 0.0;
+            bb1 = Bx;
+            bb2 = By;
+            bb3 = Bz;
+            b0 = u_1 * bb1 + u_2 * bb2 + u_3 * bb3;
+            b1 = (bb1 + b0 * u1) / u0;
+            b2 = (bb2 + b0 * u2) / u0;
+            b3 = (bb3 + b0 * u3) / u0;
+            pcoord->LowerVectorCell(b0, b1, b2, b3, k, j, i, &b_0, &b_1, &b_2, &b_3);
+            
+            // Calculate magnetic pressure
+            Real b_sq = b0 * b_0 + b1 * b_1 + b2 * b_2 + b3 * b_3;
+
+            Bx = Bx * B_mag/std::sqrt(b_sq);
+            By = By * B_mag/std::sqrt(b_sq);
+            Bz = Bz * B_mag/std::sqrt(b_sq);
+
+
+            //Then b^0 and b^i \propto A_norm 
+            //Use b^\mu b_\mu = B_mag^2 and b^\mu u^\nu g_\mu \nu =0
+            // b^0 u^0 g_00 + A_norm( u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33) = 0
+            // b^0 b^0 g_00 + A_norm^2 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
+
+            // solve for b^0 and A_norm
+
+            // b^0 = - A_norm/(u^0 g_00) (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)
+            // (b^0)^2 =  Bmag^2/g_00 -A_norm^2 /g_00 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33)  
+
+            // A_norm^2 /(u^0 g_00)^2  (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 = Bmag^2/g_00 -A_norm^2/g_00 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33)
+            // A_norm^2 (1/(u^0)^2/g_00 (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 +   (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
+            // A_norm = Bmag sqrt(1/ ... )
+
             //Assume b^\mu = (b^0, A_norm Bx, A_norm By, A_norm Bz)
             //Use b^\mu b_\mu = B_mag^2 and b^\mu u^\nu g_\mu \nu =0
             // b^0 u^0 g_00 + A_norm( u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33) = 0
@@ -435,19 +475,23 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             // A_norm^2 (1/(u^0)^2/g_00 (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 +   (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
             // A_norm = Bmag sqrt(1/ ... )
 
-            Real num_sq = SQR(Bmag) ;
+            // Real u_dot_b = u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) +
 
-            Real denom_sq = 1.0/SQR(u0)/g(I00) * SQR(u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) )
-                             + ( SQR(Bx) * g(I11,i) + SQR(By) * g(I22,i) + SQR(Bz) * g(I33,i) );
+            //                u0 * Bx * g(I00,i) + u0 * By * g(I02,i) + u0 * Bz * g(I03,i);
+
+            // Real num_sq = SQR(Bmag) ;
+
+            // Real denom_sq = 1.0/SQR(u0)/g(I00) * SQR(u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) )
+            //                  + ( SQR(Bx) * g(I11,i) + SQR(By) * g(I22,i) + SQR(Bz) * g(I33,i) );
 
 
-            Real A_norm = std::sqrt(num_sq/denom_sq);
+            // Real A_norm = std::sqrt(num_sq/denom_sq);
 
-            Real b0 = -A_norm / (u0*g(I00,i)) * ( u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) );
+            // Real b0 = -A_norm / (u0*g(I00,i)) * ( u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) );
 
-            Real b1 = A_norm * Bx;
-            Real b2 = A_norm * By;
-            Real b3 = A_norm * Bz;
+            // Real b1 = A_norm * Bx;
+            // Real b2 = A_norm * By;
+            // Real b3 = A_norm * Bz;
 
             //now convert back to three vector (Equation 17 Gammie+ 2003)
 
@@ -465,7 +509,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             // Real b1 = Bx;
             // Real b2 = 0.0;
             // Real b3 = Bz; 
-            pfield->b.x1f(k,j,i) = b1 * u0 - b0 * u1;
+            //pfield->b.x1f(k,j,i) = b1 * u0 - b0 * u1;
+            pfield->b.x1f(k,j,i) = Bx;
           }
         }
       }
@@ -550,6 +595,31 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             Real u2 = uu2 - alpha * gamma * gi(I02,i);
             Real u3 = uu3 - alpha * gamma * gi(I03,i);
 
+
+            //Assume B^i_new = A_norm B^i
+            //Then b^0 and b^i \propto A_norm 
+
+            // Calculate 4-magnetic field
+            Real bb1 = 0.0, bb2 = 0.0, bb3 = 0.0;
+            Real b0 = 0.0, b1 = 0.0, b2 = 0.0, b3 = 0.0;
+            Real b_0 = 0.0, b_1 = 0.0, b_2 = 0.0, b_3 = 0.0;
+            bb1 = Bx;
+            bb2 = By;
+            bb3 = Bz;
+            b0 = u_1 * bb1 + u_2 * bb2 + u_3 * bb3;
+            b1 = (bb1 + b0 * u1) / u0;
+            b2 = (bb2 + b0 * u2) / u0;
+            b3 = (bb3 + b0 * u3) / u0;
+            pcoord->LowerVectorCell(b0, b1, b2, b3, k, j, i, &b_0, &b_1, &b_2, &b_3);
+            
+            // Calculate magnetic pressure
+            Real b_sq = b0 * b_0 + b1 * b_1 + b2 * b_2 + b3 * b_3;
+
+            Bx = Bx * B_mag/std::sqrt(b_sq);
+            By = By * B_mag/std::sqrt(b_sq);
+            Bz = Bz * B_mag/std::sqrt(b_sq);
+
+
             //Assume b^\mu = (b^0, A_norm Bx, A_norm By, A_norm Bz)
             //Use b^\mu b_\mu = B_mag^2 and b^\mu u^\nu g_\mu \nu =0
             // b^0 u^0 g_00 + A_norm( u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33) = 0
@@ -564,24 +634,26 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             // A_norm^2 (1/(u^0)^2/g_00 (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 +   (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
             // A_norm = Bmag sqrt(1/ ... )
 
-            Real num_sq = SQR(Bmag) ;
+            // Real num_sq = SQR(Bmag) ;
 
-            Real denom_sq = 1.0/SQR(u0)/g(I00) * SQR(u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) )
-                             + ( SQR(Bx) * g(I11,i) + SQR(By) * g(I22,i) + SQR(Bz) * g(I33,i) );
+            // Real denom_sq = 1.0/SQR(u0)/g(I00) * SQR(u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) )
+            //                  + ( SQR(Bx) * g(I11,i) + SQR(By) * g(I22,i) + SQR(Bz) * g(I33,i) );
 
 
-            Real A_norm = std::sqrt(num_sq/denom_sq);
+            // Real A_norm = std::sqrt(num_sq/denom_sq);
 
-            Real b0 = -A_norm / (u0*g(I00,i)) * ( u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) );
+            // Real b0 = -A_norm / (u0*g(I00,i)) * ( u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) );
 
-            Real b1 = A_norm * Bx;
-            Real b2 = A_norm * By;
-            Real b3 = A_norm * Bz;
+            // Real b1 = A_norm * Bx;
+            // Real b2 = A_norm * By;
+            // Real b3 = A_norm * Bz;
 
             //now convert back to three vector (Equation 17 Gammie+ 2003)
 
 
-            pfield->b.x3f(k,j,i) = b3 * u0 - b0 * u3;
+            // pfield->b.x3f(k,j,i) = b3 * u0 - b0 * u3;
+            pfield->b.x3f(k,j,i) = Bz;
+
 
             if (std::isnan(pfield->b.x3f(k,j,i))){
               fprintf(stderr,"NAN in B3!!\n b3: %g u0: %g b0: %g u3: %g\n g: %g %g %g %g \n num_sq: %g denom_sq: %g A_norm: %g ",b3,u0,b0,u3, g(I00,i),g(I11,i),g(I22,i),g(I33,i),
@@ -652,7 +724,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           v3 *= (amp*cs);
 
 
-          Real u0 = std::sqrt( -1 / ( g(I00,i) + g(I11,i)*v1 + g(I22,i)*v2 + g(I33,i)*v3   )   ); 
+          Real u0 = std::sqrt( -1 / ( g(I00,i) + g(I11,i)*SQR(v1) + g(I22,i)*SQR(v2) + g(I33,i)*SQR(v3) + 
+                                      2.0*g(I01,i)*v1 + 2.0*g(I02)*v2 + 2.0*g(I03,i)*v3  )   ); 
           Real u1 = u0*v1;
           Real u2 = u0*v2;
           Real u3 = u0*v3;
@@ -803,6 +876,31 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             Real u2 = uu2 - alpha * gamma * gi(I02,i);
             Real u3 = uu3 - alpha * gamma * gi(I03,i);
 
+            //Assume B^i_new = A_norm B^i
+            //Then b^0 and b^i \propto A_norm 
+
+            // Calculate 4-magnetic field
+            Real bb1 = 0.0, bb2 = 0.0, bb3 = 0.0;
+            Real b0 = 0.0, b1 = 0.0, b2 = 0.0, b3 = 0.0;
+            Real b_0 = 0.0, b_1 = 0.0, b_2 = 0.0, b_3 = 0.0;
+            bb1 = Bx;
+            bb2 = By;
+            bb3 = Bz;
+            b0 = u_1 * bb1 + u_2 * bb2 + u_3 * bb3;
+            b1 = (bb1 + b0 * u1) / u0;
+            b2 = (bb2 + b0 * u2) / u0;
+            b3 = (bb3 + b0 * u3) / u0;
+            pcoord->LowerVectorCell(b0, b1, b2, b3, k, j, i, &b_0, &b_1, &b_2, &b_3);
+            
+            // Calculate magnetic pressure
+            Real b_sq = b0 * b_0 + b1 * b_1 + b2 * b_2 + b3 * b_3;
+
+            Bx = Bx * B_mag/std::sqrt(b_sq);
+            By = By * B_mag/std::sqrt(b_sq);
+            Bz = Bz * B_mag/std::sqrt(b_sq);
+
+
+
             //Assume b^\mu = (b^0, A_norm Bx, A_norm By, A_norm Bz)
             //Use b^\mu b_\mu = B_mag^2 and b^\mu u^\nu g_\mu \nu =0
             // b^0 u^0 g_00 + A_norm( u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33) = 0
@@ -817,23 +915,24 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             // A_norm^2 (1/(u^0)^2/g_00 (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 +   (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
             // A_norm = Bmag sqrt(1/ ... )
 
-            Real num_sq = SQR(Bmag) ;
+            // Real num_sq = SQR(Bmag) ;
 
-            Real denom_sq = 1.0/SQR(u0)/g(I00) * SQR(u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) )
-                             + ( SQR(Bx) * g(I11,i) + SQR(By) * g(I22,i) + SQR(Bz) * g(I33,i) );
+            // Real denom_sq = 1.0/SQR(u0)/g(I00) * SQR(u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) )
+            //                  + ( SQR(Bx) * g(I11,i) + SQR(By) * g(I22,i) + SQR(Bz) * g(I33,i) );
 
 
-            Real A_norm = std::sqrt(num_sq/denom_sq);
+            // Real A_norm = std::sqrt(num_sq/denom_sq);
 
-            Real b0 = -A_norm / (u0*g(I00,i)) * ( u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) );
+            // Real b0 = -A_norm / (u0*g(I00,i)) * ( u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) );
 
-            Real b1 = A_norm * Bx;
-            Real b2 = A_norm * By;
-            Real b3 = A_norm * Bz;
+            // Real b1 = A_norm * Bx;
+            // Real b2 = A_norm * By;
+            // Real b3 = A_norm * Bz;
 
             //now convert back to three vector (Equation 17 Gammie+ 2003)
    
-            pfield->b.x1f(k,j,i) = b1 * u0 - b0 * u1;
+            // pfield->b.x1f(k,j,i) = b1 * u0 - b0 * u1;
+            pfield->b.x1f(k,j,i) = Bx;
           }
         }
       }
@@ -909,6 +1008,30 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             Real u3 = uu3 - alpha * gamma * gi(I03,i);
 
 
+            //Assume B^i_new = A_norm B^i
+            //Then b^0 and b^i \propto A_norm 
+
+            // Calculate 4-magnetic field
+            Real bb1 = 0.0, bb2 = 0.0, bb3 = 0.0;
+            Real b0 = 0.0, b1 = 0.0, b2 = 0.0, b3 = 0.0;
+            Real b_0 = 0.0, b_1 = 0.0, b_2 = 0.0, b_3 = 0.0;
+            bb1 = Bx;
+            bb2 = By;
+            bb3 = Bz;
+            b0 = u_1 * bb1 + u_2 * bb2 + u_3 * bb3;
+            b1 = (bb1 + b0 * u1) / u0;
+            b2 = (bb2 + b0 * u2) / u0;
+            b3 = (bb3 + b0 * u3) / u0;
+            pcoord->LowerVectorCell(b0, b1, b2, b3, k, j, i, &b_0, &b_1, &b_2, &b_3);
+            
+            // Calculate magnetic pressure
+            Real b_sq = b0 * b_0 + b1 * b_1 + b2 * b_2 + b3 * b_3;
+
+            Bx = Bx * B_mag/std::sqrt(b_sq);
+            By = By * B_mag/std::sqrt(b_sq);
+            Bz = Bz * B_mag/std::sqrt(b_sq);
+
+
             //Assume b^\mu = (b^0, A_norm Bx, A_norm By, A_norm Bz)
             //Use b^\mu b_\mu = B_mag^2 and b^\mu u^\nu g_\mu \nu =0
             // b^0 u^0 g_00 + A_norm( u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33) = 0
@@ -922,25 +1045,27 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             // A_norm^2 (1/(u^0)^2/g_00 (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 +   (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
             // A_norm = Bmag sqrt(1/ ... )
 
-            Real num_sq = SQR(Bmag) ;
+            // Real num_sq = SQR(Bmag) ;
 
-            Real denom_sq = 1.0/SQR(u0)/g(I00) * SQR(u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) )
-                             + ( SQR(Bx) * g(I11,i) + SQR(By) * g(I22,i) + SQR(Bz) * g(I33,i) );
+            // Real denom_sq = 1.0/SQR(u0)/g(I00) * SQR(u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) )
+            //                  + ( SQR(Bx) * g(I11,i) + SQR(By) * g(I22,i) + SQR(Bz) * g(I33,i) );
 
 
-            Real A_norm = std::sqrt(num_sq/denom_sq);
+            // Real A_norm = std::sqrt(num_sq/denom_sq);
 
-            Real b0 = -A_norm / (u0*g(I00,i)) * ( u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) );
+            // Real b0 = -A_norm / (u0*g(I00,i)) * ( u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) );
 
-            Real b1 = A_norm * Bx;
-            Real b2 = A_norm * By;
-            Real b3 = A_norm * Bz;
+            // Real b1 = A_norm * Bx;
+            // Real b2 = A_norm * By;
+            // Real b3 = A_norm * Bz;
 
             //now convert back to three vector (Equation 17 Gammie+ 2003)
 
 
 
-            pfield->b.x2f(k,j,i) = b2 * u0 - b0 * u2;
+            // pfield->b.x2f(k,j,i) = b2 * u0 - b0 * u2;
+            pfield->b.x2f(k,j,i) = By;
+
           }
         }
       }
