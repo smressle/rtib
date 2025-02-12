@@ -442,13 +442,13 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             // Calculate magnetic pressure
             Real b_sq = b0 * b_0 + b1 * b_1 + b2 * b_2 + b3 * b_3;
 
-            Bx = Bx * B_mag/std::sqrt(b_sq);
-            By = By * B_mag/std::sqrt(b_sq);
-            Bz = Bz * B_mag/std::sqrt(b_sq);
+            Bx = Bx * Bmag/std::sqrt(b_sq);
+            By = By * Bmag/std::sqrt(b_sq);
+            Bz = Bz * Bmag/std::sqrt(b_sq);
 
 
             //Then b^0 and b^i \propto A_norm 
-            //Use b^\mu b_\mu = B_mag^2 and b^\mu u^\nu g_\mu \nu =0
+            //Use b^\mu b_\mu = Bmag^2 and b^\mu u^\nu g_\mu \nu =0
             // b^0 u^0 g_00 + A_norm( u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33) = 0
             // b^0 b^0 g_00 + A_norm^2 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
 
@@ -462,7 +462,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             // A_norm = Bmag sqrt(1/ ... )
 
             //Assume b^\mu = (b^0, A_norm Bx, A_norm By, A_norm Bz)
-            //Use b^\mu b_\mu = B_mag^2 and b^\mu u^\nu g_\mu \nu =0
+            //Use b^\mu b_\mu = Bmag^2 and b^\mu u^\nu g_\mu \nu =0
             // b^0 u^0 g_00 + A_norm( u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33) = 0
             // b^0 b^0 g_00 + A_norm^2 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
 
@@ -615,13 +615,13 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             // Calculate magnetic pressure
             Real b_sq = b0 * b_0 + b1 * b_1 + b2 * b_2 + b3 * b_3;
 
-            Bx = Bx * B_mag/std::sqrt(b_sq);
-            By = By * B_mag/std::sqrt(b_sq);
-            Bz = Bz * B_mag/std::sqrt(b_sq);
+            Bx = Bx * Bmag/std::sqrt(b_sq);
+            By = By * Bmag/std::sqrt(b_sq);
+            Bz = Bz * Bmag/std::sqrt(b_sq);
 
 
             //Assume b^\mu = (b^0, A_norm Bx, A_norm By, A_norm Bz)
-            //Use b^\mu b_\mu = B_mag^2 and b^\mu u^\nu g_\mu \nu =0
+            //Use b^\mu b_\mu = Bmag^2 and b^\mu u^\nu g_\mu \nu =0
             // b^0 u^0 g_00 + A_norm( u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33) = 0
             // b^0 b^0 g_00 + A_norm^2 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
 
@@ -895,14 +895,14 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             // Calculate magnetic pressure
             Real b_sq = b0 * b_0 + b1 * b_1 + b2 * b_2 + b3 * b_3;
 
-            Bx = Bx * B_mag/std::sqrt(b_sq);
-            By = By * B_mag/std::sqrt(b_sq);
-            Bz = Bz * B_mag/std::sqrt(b_sq);
+            Bx = Bx * Bmag/std::sqrt(b_sq);
+            By = By * Bmag/std::sqrt(b_sq);
+            Bz = Bz * Bmag/std::sqrt(b_sq);
 
 
 
             //Assume b^\mu = (b^0, A_norm Bx, A_norm By, A_norm Bz)
-            //Use b^\mu b_\mu = B_mag^2 and b^\mu u^\nu g_\mu \nu =0
+            //Use b^\mu b_\mu = Bmag^2 and b^\mu u^\nu g_\mu \nu =0
             // b^0 u^0 g_00 + A_norm( u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33) = 0
             // b^0 b^0 g_00 + A_norm^2 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
 
@@ -1027,13 +1027,13 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             // Calculate magnetic pressure
             Real b_sq = b0 * b_0 + b1 * b_1 + b2 * b_2 + b3 * b_3;
 
-            Bx = Bx * B_mag/std::sqrt(b_sq);
-            By = By * B_mag/std::sqrt(b_sq);
-            Bz = Bz * B_mag/std::sqrt(b_sq);
+            Bx = Bx * Bmag/std::sqrt(b_sq);
+            By = By * Bmag/std::sqrt(b_sq);
+            Bz = Bz * Bmag/std::sqrt(b_sq);
 
 
             //Assume b^\mu = (b^0, A_norm Bx, A_norm By, A_norm Bz)
-            //Use b^\mu b_\mu = B_mag^2 and b^\mu u^\nu g_\mu \nu =0
+            //Use b^\mu b_\mu = Bmag^2 and b^\mu u^\nu g_\mu \nu =0
             // b^0 u^0 g_00 + A_norm( u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33) = 0
             // b^0 b^0 g_00 + A_norm^2 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
 
