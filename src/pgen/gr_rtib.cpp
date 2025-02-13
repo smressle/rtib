@@ -258,7 +258,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
            v2 = (rand_number - 0.5)*(1.0+std::cos(ky*pcoord->x2v(j)));
           }
 
-          fprintf(stderr,"v2: %g rand_number: %g y: %g\n",v2, rand_number,ky,pcoord->x2v(j));
+          fprintf(stderr,"v2: %g rand_number: %g ky: %g y: %g\n",v2, rand_number,ky,pcoord->x2v(j));
 
           phydro->w(IDN,k,j,i) = den;
         
