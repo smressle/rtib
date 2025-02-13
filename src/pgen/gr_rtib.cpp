@@ -128,10 +128,37 @@ Real vsq(MeshBlock *pmb, int iout)
   Real vsq=0;
   int is=pmb->is, ie=pmb->ie, js=pmb->js, je=pmb->je, ks=pmb->ks, ke=pmb->ke;
 
+
+  AthenaArray<Real> &g = pmb->ruser_meshblock_data[0];
+  AthenaArray<Real> &gi = pmb->ruser_meshblock_data[1];
+
   for(int k=ks; k<=ke; k++) {
     for(int j=js; j<=je; j++) {
+      pmb->pcoord->CellMetric(k, j, is, ie, g, gi);
       for(int i=is; i<=ie; i++) {
-        vsq+= SQR( pmb->phydro->w(IVX,k,j,i) ) + SQR( pmb->phydro->w(IVY,k,j,i) ) + SQR( pmb->phydro->w(IVZ,k,j,i) );
+
+           // Calculate normal-frame Lorentz factor
+          Real uu1 = pmb->phydro->w(IVX,k,j,i);
+          Real uu2 = pmb->phydro->w(IVY,k,j,i);
+          Real uu3 = pmb->phydro->w(IVZ,k,j,i);
+          Real tmp = g(I11,i) * SQR(uu1) + 2.0 * g(I12,i) * uu1 * uu2
+              + 2.0 * g(I13,i) * uu1 * uu3 + g(I22,i) * SQR(uu2)
+              + 2.0 * g(I23,i) * uu2 * uu3 + g(I33,i) * SQR(uu3);
+          Real gamma = std::sqrt(1.0 + tmp);
+
+          // Calculate 4-velocity
+          Real alpha = std::sqrt(-1.0 / gi(I00,i));
+          Real u0 = gamma / alpha;
+          Real u1 = uu1 - alpha * gamma * gi(I01,i);
+          Real u2 = uu2 - alpha * gamma * gi(I02,i);
+          Real u3 = uu3 - alpha * gamma * gi(I03,i);
+
+          Real v1 = u1/u0;
+          Real v2 = u2/u0;
+          Real v3 = u3/u0;
+
+
+        vsq+= SQR( v1 ) + SQR( v2 ) + SQR( v3 );
       }
     }
   }
