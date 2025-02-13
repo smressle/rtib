@@ -1213,8 +1213,8 @@ void ProjectPressureInnerX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
       for (int j=1; j<=ngh; ++j) {
         if (n==(IVX) || n==(IVY) || n==(IVZ) ) {
 // #pragma omp simd
-          pcoord->CellMetric(k, jl+j-1, il, iu, g1, g1i);
-          pcoord->CellMetric(k, jl-j, il, iu, g2, g2i);
+          pmb->pcoord->CellMetric(k, jl+j-1, il, iu, g1, g1i);
+          pmb->pcoord->CellMetric(k, jl-j, il, iu, g2, g2i);
           for (int i=il; i<=iu; ++i) {
 
             //first compute the coordinate velocities inside the domain
@@ -1250,9 +1250,9 @@ void ProjectPressureInnerX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
             u3 = u0*v3;
 
 
-            Real uu1 = u1 - g2i(I01,i) / g2i(I00,i) * u0;
-            Real uu2 = u2 - g2i(I02,i) / g2i(I00,i) * u0;
-            Real uu3 = u3 - g2i(I03,i) / g2i(I00,i) * u0;
+            uu1 = u1 - g2i(I01,i) / g2i(I00,i) * u0;
+            uu2 = u2 - g2i(I02,i) / g2i(I00,i) * u0;
+            uu3 = u3 - g2i(I03,i) / g2i(I00,i) * u0;
 
 
 
@@ -1339,8 +1339,8 @@ void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
       for (int j=1; j<=ngh; ++j) {
         if (n==(IVX) || n==(IVY) || n==(IVZ) ) {
 // #pragma omp simd
-          pcoord->CellMetric(k, ju-j+1, il, iu, g1, g1i);
-          pcoord->CellMetric(k, ju+j, il, iu, g2, g2i);
+          pmb->pcoord->CellMetric(k, ju-j+1, il, iu, g1, g1i);
+          pmb->pcoord->CellMetric(k, ju+j, il, iu, g2, g2i);
           for (int i=il; i<=iu; ++i) {
 
 
@@ -1377,9 +1377,9 @@ void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
             u3 = u0*v3;
 
 
-            Real uu1 = u1 - g2i(I01,i) / g2i(I00,i) * u0;
-            Real uu2 = u2 - g2i(I02,i) / g2i(I00,i) * u0;
-            Real uu3 = u3 - g2i(I03,i) / g2i(I00,i) * u0;
+            uu1 = u1 - g2i(I01,i) / g2i(I00,i) * u0;
+            uu2 = u2 - g2i(I02,i) / g2i(I00,i) * u0;
+            uu3 = u3 - g2i(I03,i) / g2i(I00,i) * u0;
 
 
 
