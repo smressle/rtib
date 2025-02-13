@@ -624,6 +624,12 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             Bz = Bz * Bmag/std::sqrt(b_sq);
 
 
+            if (std::isnan(Bz)){
+              frpintf(stderr,"Bx: %g By: %g Bz: %g \n Bmag: %g b_sq: %g u0: %g\n bmu: %g %g %g %g \n",Bx,By,Bz,Bmag,b_sq,
+                      u0,b0,b1,b1,b3);
+            }
+
+
             //Assume b^\mu = (b^0, A_norm Bx, A_norm By, A_norm Bz)
             //Use b^\mu b_\mu = Bmag^2 and b^\mu u^\nu g_\mu \nu =0
             // b^0 u^0 g_00 + A_norm( u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33) = 0
