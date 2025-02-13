@@ -625,7 +625,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
 
             if (std::isnan(Bz)){
-              frpintf(stderr,"Bx: %g By: %g Bz: %g \n Bmag: %g b_sq: %g u0: %g\n bmu: %g %g %g %g \n",Bx,By,Bz,Bmag,b_sq,
+              fprintf(stderr,"Bx: %g By: %g Bz: %g \n Bmag: %g b_sq: %g u0: %g\n bmu: %g %g %g %g \n",Bx,By,Bz,Bmag,b_sq,
                       u0,b0,b1,b1,b3);
             }
 
