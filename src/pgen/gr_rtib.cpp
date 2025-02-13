@@ -106,6 +106,9 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
     if (mesh_size.nx3>1) EnrollUserMetric(linear_metric_3D);
     else EnrollUserMetric(linear_metric_2D);
 
+
+    grav_acc = pin->GetReal("problem", "grav_acc");
+
   return;
 }
 
@@ -166,8 +169,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
   // std::int64_t iseed = -1;
   std::int64_t iseed = -1 - gid;
-  Real gamma = peos->GetGamma();
-  Real gm1 = gamma - 1.0;
+  Real gamma_adi = peos->GetGamma();
+  Real gm1 = gamma_adi - 1.0;
   // Real press_over_rho = SQR(cs)/(gamma - (gamma/(gamma-1))*SQR(cs));
   Real kx = 2.0*(PI)/(pmy_mesh->mesh_size.x1max - pmy_mesh->mesh_size.x1min);
   Real ky = 2.0*(PI)/(pmy_mesh->mesh_size.x2max - pmy_mesh->mesh_size.x2min);
@@ -207,7 +210,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
 
 // press_over_rho = SQR(cs)/(gamma - (gamma/(gamma-1))*SQR(cs));
-  Real cs = std::sqrt(press_over_rho_interface * gamma / (1.0 + gamma/(gm1) *press_over_rho_interface) );
+  Real cs = std::sqrt(press_over_rho_interface * gamma_adi / (1.0 + gamma_adi/(gm1) *press_over_rho_interface) );
 
   Real L;
   if (block_size.nx3==1) L = pmy_mesh->mesh_size.x2max - pmy_mesh->mesh_size.x2min;
@@ -234,14 +237,14 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
           Real exp_arg_term,press,Bmag;
           if (pcoord->x2v(j) > 0.0){ // cold
-            exp_arg_term = grav_acc / sigma_c * (2.0 + gamma/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
+            exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
             press = press_over_rho_interface*dc * std::exp(pcoord->x2v(j)*exp_arg_term);
             den = dc * std::exp(pcoord->x2v(j)*exp_arg_term);
             Bmag = Bc * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
 
           }
           else{ // hot
-            exp_arg_term = grav_acc / sigma_h * (2.0 + gamma/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
+            exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
             press = press_over_rho_interface*dh * std::exp(pcoord->x2v(j)*exp_arg_term);
             den = dh * std::exp(pcoord->x2v(j)*exp_arg_term);
             Bmag = Bh * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
@@ -360,12 +363,12 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
             Real exp_arg_term,Bmag;
             if (pcoord->x2v(j) > 0.0){ // cold
-              exp_arg_term = grav_acc / sigma_c * (2.0 + gamma/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
+              exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
               Bmag = Bc * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
 
             }
             else{ // hot
-              exp_arg_term = grav_acc / sigma_h * (2.0 + gamma/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
+              exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
               Bmag = Bh * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
             }
 
@@ -547,12 +550,12 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
             Real exp_arg_term,Bmag;
             if (pcoord->x2v(j) > 0.0){ // cold
-              exp_arg_term = grav_acc / sigma_c * (2.0 + gamma/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
+              exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
               Bmag = Bc * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
 
             }
             else{ // hot
-              exp_arg_term = grav_acc / sigma_h * (2.0 + gamma/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
+              exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
               Bmag = Bh * std::sqrt(( std::exp(pcoord->x2v(j)*exp_arg_term)));
             }
 
@@ -749,14 +752,14 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
           Real exp_arg_term,press,Bmag;
           if (pcoord->x3v(k) > 0.0){ // cold
-            exp_arg_term = grav_acc / sigma_c * (2.0 + gamma/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
+            exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
             press = press_over_rho_interface*dc * std::exp(pcoord->x3v(k)*exp_arg_term);
             den = dc * std::exp(pcoord->x3v(k)*exp_arg_term);
             Bmag = Bc * std::sqrt( std::exp(pcoord->x3v(k)*exp_arg_term));
 
           }
           else{ // hot
-            exp_arg_term = grav_acc / sigma_h * (2.0 + gamma/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
+            exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
             press = press_over_rho_interface*dh * std::exp(pcoord->x3v(k)*exp_arg_term);
             den = dh * std::exp(pcoord->x3v(k)*exp_arg_term);
             Bmag = Bh * std::sqrt( std::exp(pcoord->x3v(k)*exp_arg_term));
@@ -869,12 +872,12 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
             Real exp_arg_term,Bmag;
             if (pcoord->x3v(k) > 0.0){ // cold
-              exp_arg_term = grav_acc / sigma_c * (2.0 + gamma/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
+              exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
               Bmag = Bc * std::sqrt( std::exp(pcoord->x3v(k)*exp_arg_term));
 
             }
             else{ // hot
-              exp_arg_term = grav_acc / sigma_h * (2.0 + gamma/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
+              exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
               Bmag = Bh * std::sqrt( std::exp(pcoord->x3v(k)*exp_arg_term));
             }
 
@@ -1010,12 +1013,12 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
             Real exp_arg_term,Bmag;
             if (pcoord->x3v(k) > 0.0){ // cold
-              exp_arg_term = grav_acc / sigma_c * (2.0 + gamma/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
+              exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
               Bmag = Bc * std::sqrt( std::exp(pcoord->x3v(k)*exp_arg_term));
 
             }
             else{ // hot
-              exp_arg_term = grav_acc / sigma_h * (2.0 + gamma/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
+              exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
               Bmag = Bh * std::sqrt( std::exp(pcoord->x3v(k)*exp_arg_term));
             }
 
@@ -1194,13 +1197,69 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 void ProjectPressureInnerX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> &prim,
                             FaceField &b, Real time, Real dt,
                             int il, int iu, int jl, int ju, int kl, int ku, int ngh) {
+
+
+    // Prepare scratch arrays
+
+  AthenaArray<Real> g1,g1i,g2,g2i;
+
+  g1.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 1);
+  g1i.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 1);
+  g2.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 1);
+  g2i.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 1);
+
   for (int n=0; n<(NHYDRO); ++n) {
     for (int k=kl; k<=ku; ++k) {
       for (int j=1; j<=ngh; ++j) {
-        if (n==(IVY)) {
-#pragma omp simd
+        if (n==(IVX) || n==(IVY) || n==(IVZ) ) {
+// #pragma omp simd
+          pcoord->CellMetric(k, jl+j-1, il, iu, g1, g1i);
+          pcoord->CellMetric(k, jl-j, il, iu, g2, g2i);
           for (int i=il; i<=iu; ++i) {
-            prim(IVY,k,jl-j,i) = -prim(IVY,k,jl+j-1,i);  // reflect 2-velocity
+
+            //first compute the coordinate velocities inside the domain
+            // Calculate normal-frame Lorentz factor
+            Real uu1 = prim(IVX,k,jl+j-1,i);
+            Real uu2 = prim(IVY,k,jl+j-1,i);
+            Real uu3 = prim(IVZ,k,jl+j-1,i);
+            Real tmp = g1(I11,i) * SQR(uu1) + 2.0 * g1(I12,i) * uu1 * uu2
+                + 2.0 * g1(I13,i) * uu1 * uu3 + g1(I22,i) * SQR(uu2)
+                + 2.0 * g1(I23,i) * uu2 * uu3 + g1(I33,i) * SQR(uu3);
+            Real gamma = std::sqrt(1.0 + tmp);
+
+            // Calculate 4-velocity
+            Real alpha = std::sqrt(-1.0 / g1i(I00,i));
+            Real u0 = gamma / alpha;
+            Real u1 = uu1 - alpha * gamma * g1i(I01,i);
+            Real u2 = uu2 - alpha * gamma * g1i(I02,i);
+            Real u3 = uu3 - alpha * gamma * g1i(I03,i);
+
+            Real v1 = u1/u0;
+            Real v2 = u2/u0;
+            Real v3 = u3/u0;
+
+            //reflect coordinat velocity in x2 direction
+            v2 = -v2;
+
+
+            //Now recompute primitives given this coordinate velocity in the ghost zone
+            u0 = std::sqrt( -1 / ( g2(I00,i) + g2(I11,i)*SQR(v1) + g2(I22,i)*SQR(v2) + g2(I33,i)*SQR(v3) + 
+                                      2.0*g2(I01,i)*v1 + 2.0*g2(I02)*v2 + 2.0*g2(I03,i)*v3  )   ); 
+            u1 = u0*v1;
+            u2 = u0*v2;
+            u3 = u0*v3;
+
+
+            Real uu1 = u1 - g2i(I01,i) / g2i(I00,i) * u0;
+            Real uu2 = u2 - g2i(I02,i) / g2i(I00,i) * u0;
+            Real uu3 = u3 - g2i(I03,i) / g2i(I00,i) * u0;
+
+
+
+            if (n==IVX) prim(IVX,k,jl-j,i) = uu1;
+            if (n==IVY) prim(IVY,k,jl-j,i) = uu2;  
+            if (n==IVZ) prim(IVZ,k,jl-j,i) = uu3;
+
           }
         } else if (n==(IPR)) {
 #pragma omp simd
@@ -1248,6 +1307,11 @@ void ProjectPressureInnerX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
     }
   }
 
+  g1.DeleteAthenaArray();
+  g1i.DeleteAthenaArray();
+  g2.DeleteAthenaArray();
+  g2i.DeleteAthenaArray();
+
   return;
 }
 
@@ -1260,13 +1324,69 @@ void ProjectPressureInnerX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
 void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> &prim,
                             FaceField &b, Real time, Real dt,
                             int il, int iu, int jl, int ju, int kl, int ku, int ngh) {
+
+
+  AthenaArray<Real> g1,g1i,g2,g2i;
+
+  g1.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 1);
+  g1i.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 1);
+  g2.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 1);
+  g2i.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 1);
+
+
   for (int n=0; n<(NHYDRO); ++n) {
     for (int k=kl; k<=ku; ++k) {
       for (int j=1; j<=ngh; ++j) {
-        if (n==(IVY)) {
-#pragma omp simd
+        if (n==(IVX) || n==(IVY) || n==(IVZ) ) {
+// #pragma omp simd
+          pcoord->CellMetric(k, ju-j+1, il, iu, g1, g1i);
+          pcoord->CellMetric(k, ju+j, il, iu, g2, g2i);
           for (int i=il; i<=iu; ++i) {
-            prim(IVY,k,ju+j,i) = -prim(IVY,k,ju-j+1,i);  // reflect 2-velocity
+
+
+            //first compute the coordinate velocities inside the domain
+            // Calculate normal-frame Lorentz factor
+            Real uu1 = prim(IVX,k,ju-j+1,i);
+            Real uu2 = prim(IVY,k,ju-j+1,i);
+            Real uu3 = prim(IVZ,k,ju-j+1,i);
+            Real tmp = g1(I11,i) * SQR(uu1) + 2.0 * g1(I12,i) * uu1 * uu2
+                + 2.0 * g1(I13,i) * uu1 * uu3 + g1(I22,i) * SQR(uu2)
+                + 2.0 * g1(I23,i) * uu2 * uu3 + g1(I33,i) * SQR(uu3);
+            Real gamma = std::sqrt(1.0 + tmp);
+
+            // Calculate 4-velocity
+            Real alpha = std::sqrt(-1.0 / g1i(I00,i));
+            Real u0 = gamma / alpha;
+            Real u1 = uu1 - alpha * gamma * g1i(I01,i);
+            Real u2 = uu2 - alpha * gamma * g1i(I02,i);
+            Real u3 = uu3 - alpha * gamma * g1i(I03,i);
+
+            Real v1 = u1/u0;
+            Real v2 = u2/u0;
+            Real v3 = u3/u0;
+
+            //reflect coordinat velocity in x2 direction
+            v2 = -v2;
+
+
+            //Now recompute primitives given this coordinate velocity in the ghost zone
+            u0 = std::sqrt( -1 / ( g2(I00,i) + g2(I11,i)*SQR(v1) + g2(I22,i)*SQR(v2) + g2(I33,i)*SQR(v3) + 
+                                      2.0*g2(I01,i)*v1 + 2.0*g2(I02)*v2 + 2.0*g2(I03,i)*v3  )   ); 
+            u1 = u0*v1;
+            u2 = u0*v2;
+            u3 = u0*v3;
+
+
+            Real uu1 = u1 - g2i(I01,i) / g2i(I00,i) * u0;
+            Real uu2 = u2 - g2i(I02,i) / g2i(I00,i) * u0;
+            Real uu3 = u3 - g2i(I03,i) / g2i(I00,i) * u0;
+
+
+
+            if (n==IVX) prim(IVX,k,ju+j,i) = uu1;
+            if (n==IVY) prim(IVY,k,ju+j,i) = uu2;  
+            if (n==IVZ) prim(IVZ,k,ju+j,i) = uu3;
+            // prim(IVY,k,ju+j,i) = -prim(IVY,k,ju-j+1,i);  // reflect 2-velocity
           }
         } else if (n==(IPR)) {
 #pragma omp simd
