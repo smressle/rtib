@@ -1434,6 +1434,10 @@ void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
     }
   }
 
+  g1.DeleteAthenaArray();
+  g1i.DeleteAthenaArray();
+  g2.DeleteAthenaArray();
+  g2i.DeleteAthenaArray();
   return;
 }
 
@@ -1446,13 +1450,71 @@ void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
 void ProjectPressureInnerX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> &prim,
                             FaceField &b, Real time, Real dt,
                             int il, int iu, int jl, int ju, int kl, int ku, int ngh) {
+
+
+  AthenaArray<Real> g1,g1i,g2,g2i;
+
+  g1.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 1);
+  g1i.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 1);
+  g2.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 1);
+  g2i.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 1);
+
   for (int n=0; n<(NHYDRO); ++n) {
     for (int k=1; k<=ngh; ++k) {
       for (int j=jl; j<=ju; ++j) {
-        if (n==(IVZ)) {
-#pragma omp simd
+        if (n==(IVX) || n==(IVY) || n==(IVZ) ) {
+// #pragma omp simd
+          pmb->pcoord->CellMetric(kl+k-1, j, il, iu, g1, g1i);
+          pmb->pcoord->CellMetric(kl-k, j, il, iu, g2, g2i);
           for (int i=il; i<=iu; ++i) {
-            prim(IVZ,kl-k,j,i) = -prim(IVZ,kl+k-1,j,i);  // reflect 3-vel
+            //first compute the coordinate velocities inside the domain
+            // Calculate normal-frame Lorentz factor
+            Real uu1 = prim(IVX,kl+k-1,j,i);
+            Real uu2 = prim(IVY,kl+k-1,j,i);
+            Real uu3 = prim(IVZ,kl+k-1,j,i);
+            Real tmp = g1(I11,i) * SQR(uu1) + 2.0 * g1(I12,i) * uu1 * uu2
+                + 2.0 * g1(I13,i) * uu1 * uu3 + g1(I22,i) * SQR(uu2)
+                + 2.0 * g1(I23,i) * uu2 * uu3 + g1(I33,i) * SQR(uu3);
+            Real gamma = std::sqrt(1.0 + tmp);
+
+            // Calculate 4-velocity
+            Real alpha = std::sqrt(-1.0 / g1i(I00,i));
+            Real u0 = gamma / alpha;
+            Real u1 = uu1 - alpha * gamma * g1i(I01,i);
+            Real u2 = uu2 - alpha * gamma * g1i(I02,i);
+            Real u3 = uu3 - alpha * gamma * g1i(I03,i);
+
+            Real v1 = u1/u0;
+            Real v2 = u2/u0;
+            Real v3 = u3/u0;
+
+            //reflect coordinat velocity in x3 direction
+            v3 = -v3;
+
+
+            //Now recompute primitives given this coordinate velocity in the ghost zone
+            u0 = std::sqrt( -1 / ( g2(I00,i) + g2(I11,i)*SQR(v1) + g2(I22,i)*SQR(v2) + g2(I33,i)*SQR(v3) + 
+                                      2.0*g2(I01,i)*v1 + 2.0*g2(I02)*v2 + 2.0*g2(I03,i)*v3  )   ); 
+            u1 = u0*v1;
+            u2 = u0*v2;
+            u3 = u0*v3;
+
+
+            uu1 = u1 - g2i(I01,i) / g2i(I00,i) * u0;
+            uu2 = u2 - g2i(I02,i) / g2i(I00,i) * u0;
+            uu3 = u3 - g2i(I03,i) / g2i(I00,i) * u0;
+
+
+
+            if (n==IVX) prim(IVX,kl-k,j,i) = uu1;
+            if (n==IVY) prim(IVY,kl-k,j,i) = uu2;  
+            if (n==IVZ) prim(IVZ,kl-k,j,i) = uu3;
+
+
+
+
+
+            // prim(IVZ,kl-k,j,i) = -prim(IVZ,kl+k-1,j,i);  // reflect 3-vel
           }
         } else if (n==(IPR)) {
 #pragma omp simd
@@ -1500,6 +1562,11 @@ void ProjectPressureInnerX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
     }
   }
 
+  g1.DeleteAthenaArray();
+  g1i.DeleteAthenaArray();
+  g2.DeleteAthenaArray();
+  g2i.DeleteAthenaArray();
+
   return;
 }
 
@@ -1512,13 +1579,67 @@ void ProjectPressureInnerX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
 void ProjectPressureOuterX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> &prim,
                             FaceField &b, Real time, Real dt,
                             int il, int iu, int jl, int ju, int kl, int ku, int ngh) {
+
+    AthenaArray<Real> g1,g1i,g2,g2i;
+
+  g1.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 1);
+  g1i.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 1);
+  g2.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 1);
+  g2i.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 1);
+
   for (int n=0; n<(NHYDRO); ++n) {
     for (int k=1; k<=ngh; ++k) {
       for (int j=jl; j<=ju; ++j) {
-        if (n==(IVZ)) {
-#pragma omp simd
+        if (n==(IVX) || n==(IVY) || n==(IVZ) ) {
+// #pragma omp simd
+          pmb->pcoord->CellMetric(ku-k+1, j, il, iu, g1, g1i);
+          pmb->pcoord->CellMetric(ku+k, j, il, iu, g2, g2i);
           for (int i=il; i<=iu; ++i) {
-            prim(IVZ,ku+k,j,i) = -prim(IVZ,ku-k+1,j,i);  // reflect 3-vel
+
+            //first compute the coordinate velocities inside the domain
+            // Calculate normal-frame Lorentz factor
+            Real uu1 = prim(IVX,ku-k+1,j,i);
+            Real uu2 = prim(IVY,ku-k+1,j,i);
+            Real uu3 = prim(IVZ,ku-k+1,j,i);
+            Real tmp = g1(I11,i) * SQR(uu1) + 2.0 * g1(I12,i) * uu1 * uu2
+                + 2.0 * g1(I13,i) * uu1 * uu3 + g1(I22,i) * SQR(uu2)
+                + 2.0 * g1(I23,i) * uu2 * uu3 + g1(I33,i) * SQR(uu3);
+            Real gamma = std::sqrt(1.0 + tmp);
+
+            // Calculate 4-velocity
+            Real alpha = std::sqrt(-1.0 / g1i(I00,i));
+            Real u0 = gamma / alpha;
+            Real u1 = uu1 - alpha * gamma * g1i(I01,i);
+            Real u2 = uu2 - alpha * gamma * g1i(I02,i);
+            Real u3 = uu3 - alpha * gamma * g1i(I03,i);
+
+            Real v1 = u1/u0;
+            Real v2 = u2/u0;
+            Real v3 = u3/u0;
+
+            //reflect coordinat velocity in x3 direction
+            v3 = -v3;
+
+
+            //Now recompute primitives given this coordinate velocity in the ghost zone
+            u0 = std::sqrt( -1 / ( g2(I00,i) + g2(I11,i)*SQR(v1) + g2(I22,i)*SQR(v2) + g2(I33,i)*SQR(v3) + 
+                                      2.0*g2(I01,i)*v1 + 2.0*g2(I02)*v2 + 2.0*g2(I03,i)*v3  )   ); 
+            u1 = u0*v1;
+            u2 = u0*v2;
+            u3 = u0*v3;
+
+
+            uu1 = u1 - g2i(I01,i) / g2i(I00,i) * u0;
+            uu2 = u2 - g2i(I02,i) / g2i(I00,i) * u0;
+            uu3 = u3 - g2i(I03,i) / g2i(I00,i) * u0;
+
+
+
+            if (n==IVX) prim(IVX,ku+k,j,i) = uu1;
+            if (n==IVY) prim(IVY,ku+k,j,i) = uu2;  
+            if (n==IVZ) prim(IVZ,ku+k,j,i) = uu3;
+
+            // prim(IVZ,ku+k,j,i) = -prim(IVZ,ku-k+1,j,i);  // reflect 3-vel
           }
         } else if (n==(IPR)) {
 #pragma omp simd
@@ -1565,6 +1686,11 @@ void ProjectPressureOuterX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
       }
     }
   }
+
+  g1.DeleteAthenaArray();
+  g1i.DeleteAthenaArray();
+  g2.DeleteAthenaArray();
+  g2i.DeleteAthenaArray();
 
   return;
 }
