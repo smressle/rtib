@@ -661,7 +661,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             b_2 = g(I02,i)*b0 + g(I12,i)*b1 + g(I22,i)*b2 + g(I23,i)*b3;
             b_3 = g(I03,i)*b0 + g(I13,i)*b1 + g(I23,i)*b2 + g(I33,i)*b3;
 
-            b_sq = b0 * b_0 + b1 * b_1 + b2 * b_2 + b3 * b_3
+            b_sq = b0 * b_0 + b1 * b_1 + b2 * b_2 + b3 * b_3;
 
 
             fprintf(stderr,"bsq_target: %g bsq_act: %g\n", SQR(Bmag),b_sq);
