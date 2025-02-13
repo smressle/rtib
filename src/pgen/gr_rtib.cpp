@@ -423,7 +423,12 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             Real u3 = uu3 - alpha * gamma * gi(I03,i);
 
             Real u_0, u_1, u_2, u_3;
-            pcoord->LowerVectorCell(u0, u1, u2, u3, k, j, i, &u_0, &u_1, &u_2, &u_3);
+
+            u_0 = g(I00,i)*u0 + g(I01,i)*u1 + g(I02,i)*u2 + g(I03,i)*u3;
+            u_1 = g(I01,i)*u0 + g(I11,i)*u1 + g(I12,i)*u2 + g(I13,i)*u3;
+            u_2 = g(I02,i)*u0 + g(I12,i)*u1 + g(I22,i)*u2 + g(I23,i)*u3;
+            u_3 = g(I03,i)*u0 + g(I13,i)*u1 + g(I23,i)*u2 + g(I33,i)*u3;
+            // pcoord->LowerVectorCell(u0, u1, u2, u3, k, j, i, &u_0, &u_1, &u_2, &u_3);
 
             //Assume B^i_new = A_norm B^i
             //Then b^0 and b^i \propto A_norm 
@@ -439,7 +444,13 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             b1 = (bb1 + b0 * u1) / u0;
             b2 = (bb2 + b0 * u2) / u0;
             b3 = (bb3 + b0 * u3) / u0;
-            pcoord->LowerVectorCell(b0, b1, b2, b3, k, j, i, &b_0, &b_1, &b_2, &b_3);
+            // pcoord->LowerVectorCell(b0, b1, b2, b3, k, j, i, &b_0, &b_1, &b_2, &b_3);
+
+
+            b_0 = g(I00,i)*b0 + g(I01,i)*b1 + g(I02,i)*b2 + g(I03,i)*b3;
+            b_1 = g(I01,i)*b0 + g(I11,i)*b1 + g(I12,i)*b2 + g(I13,i)*b3;
+            b_2 = g(I02,i)*b0 + g(I12,i)*b1 + g(I22,i)*b2 + g(I23,i)*b3;
+            b_3 = g(I03,i)*b0 + g(I13,i)*b1 + g(I23,i)*b2 + g(I33,i)*b3;
             
             // Calculate magnetic pressure
             Real b_sq = b0 * b_0 + b1 * b_1 + b2 * b_2 + b3 * b_3;
@@ -598,7 +609,13 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             Real u3 = uu3 - alpha * gamma * gi(I03,i);
 
             Real u_0, u_1, u_2, u_3;
-            pcoord->LowerVectorCell(u0, u1, u2, u3, k, j, i, &u_0, &u_1, &u_2, &u_3);
+            // pcoord->LowerVectorCell(u0, u1, u2, u3, k, j, i, &u_0, &u_1, &u_2, &u_3);
+
+
+            u_0 = g(I00,i)*u0 + g(I01,i)*u1 + g(I02,i)*u2 + g(I03,i)*u3;
+            u_1 = g(I01,i)*u0 + g(I11,i)*u1 + g(I12,i)*u2 + g(I13,i)*u3;
+            u_2 = g(I02,i)*u0 + g(I12,i)*u1 + g(I22,i)*u2 + g(I23,i)*u3;
+            u_3 = g(I03,i)*u0 + g(I13,i)*u1 + g(I23,i)*u2 + g(I33,i)*u3;
 
             //Assume B^i_new = A_norm B^i
             //Then b^0 and b^i \propto A_norm 
@@ -614,7 +631,13 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             b1 = (bb1 + b0 * u1) / u0;
             b2 = (bb2 + b0 * u2) / u0;
             b3 = (bb3 + b0 * u3) / u0;
-            pcoord->LowerVectorCell(b0, b1, b2, b3, k, j, i, &b_0, &b_1, &b_2, &b_3);
+            // pcoord->LowerVectorCell(b0, b1, b2, b3, k, j, i, &b_0, &b_1, &b_2, &b_3);
+
+            b_0 = g(I00,i)*b0 + g(I01,i)*b1 + g(I02,i)*b2 + g(I03,i)*b3;
+            b_1 = g(I01,i)*b0 + g(I11,i)*b1 + g(I12,i)*b2 + g(I13,i)*b3;
+            b_2 = g(I02,i)*b0 + g(I12,i)*b1 + g(I22,i)*b2 + g(I23,i)*b3;
+            b_3 = g(I03,i)*b0 + g(I13,i)*b1 + g(I23,i)*b2 + g(I33,i)*b3;
+            
             
             // Calculate magnetic pressure
             Real b_sq = b0 * b_0 + b1 * b_1 + b2 * b_2 + b3 * b_3;
@@ -626,7 +649,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
             if (std::isnan(Bz)){
               Real udotu = u0*u_0 + u1*u_1 + u_2*u2 + u3*u_3;
-              fprintf(stderr,"xyz: %g %g %g \n Bx: %g By: %g Bz: %g \n Bmag: %g b_sq: %g u0: %g\n bmu: %g %g %g %g \n udotu: %g",
+              fprintf(stderr,"xyz: %g %g %g \n Bx: %g By: %g Bz: %g \n Bmag: %g b_sq: %g u0: %g\n bmu: %g %g %g %g \n udotu: %g\n",
                 pcoord->x1v(i),pcoord->x2v(j),pcoord->x3v(k),Bx,By,Bz,Bmag,b_sq,
                       u0,b0,b1,b1,b3,udotu);
             }
