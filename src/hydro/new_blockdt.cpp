@@ -124,6 +124,24 @@ void Hydro::NewBlockTimeStep() {
         }
       }
 
+
+            // SR case: do nothing (assume maximum characteristic is c = 1)
+      // GR case: divide cell widths by coordinate speed of light (not necessarily unity)
+      if (GENERAL_RELATIVITY) {
+        pmb->pcoord->CellMetric(k, j, is, ie, g_, gi_);
+        for (int i=is; i<=ie; ++i) {
+          Real speed1 = -(std::sqrt(SQR(gi_(I01,i)) - gi_(I00,i) * gi_(I11,i))
+              + std::abs(gi_(I01,i))) / gi_(I00,i);
+          Real speed2 = -(std::sqrt(SQR(gi_(I02,i)) - gi_(I00,i) * gi_(I22,i))
+              + std::abs(gi_(I02,i))) / gi_(I00,i);
+          Real speed3 = -(std::sqrt(SQR(gi_(I03,i)) - gi_(I00,i) * gi_(I33,i))
+              + std::abs(gi_(I03,i))) / gi_(I00,i);
+          dt1(i) /= speed1;
+          dt2(i) /= speed2;
+          dt3(i) /= speed3;
+        }
+      }
+
       // compute minimum of (v1 +/- C)
       for (int i=is; i<=ie; ++i) {
         Real& dt_1 = dt1(i);
