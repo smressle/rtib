@@ -249,12 +249,16 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
 
 
+          Real rand_number;
           if (iprob == 1) {
             v2 = (1.0 + std::cos(kx*pcoord->x1v(i)))*
                                    (1.0 + std::cos(ky*pcoord->x2v(j)))/4.0;
           } else {
-           v2 = (ran2(&iseed) - 0.5)*(1.0+std::cos(ky*pcoord->x2v(j)));
+            rand_number  = ran2(&iseed)
+           v2 = (rand_number - 0.5)*(1.0+std::cos(ky*pcoord->x2v(j)));
           }
+
+          fprintf(stderr,"v2: %g rand_number: %g y: %g\n",v2, rand_number,ky,pcoord->x2v(j));
 
           phydro->w(IDN,k,j,i) = den;
         
@@ -647,24 +651,24 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             Bz = Bz * Bmag/std::sqrt(b_sq);
 
 
-            bb1 = Bx;
-            bb2 = By;
-            bb3 = Bz;
-            b0 = u_1 * bb1 + u_2 * bb2 + u_3 * bb3;
-            b1 = (bb1 + b0 * u1) / u0;
-            b2 = (bb2 + b0 * u2) / u0;
-            b3 = (bb3 + b0 * u3) / u0;
-            // pcoord->LowerVectorCell(b0, b1, b2, b3, k, j, i, &b_0, &b_1, &b_2, &b_3);
+            // bb1 = Bx;
+            // bb2 = By;
+            // bb3 = Bz;
+            // b0 = u_1 * bb1 + u_2 * bb2 + u_3 * bb3;
+            // b1 = (bb1 + b0 * u1) / u0;
+            // b2 = (bb2 + b0 * u2) / u0;
+            // b3 = (bb3 + b0 * u3) / u0;
+            // // pcoord->LowerVectorCell(b0, b1, b2, b3, k, j, i, &b_0, &b_1, &b_2, &b_3);
 
-            b_0 = g(I00,i)*b0 + g(I01,i)*b1 + g(I02,i)*b2 + g(I03,i)*b3;
-            b_1 = g(I01,i)*b0 + g(I11,i)*b1 + g(I12,i)*b2 + g(I13,i)*b3;
-            b_2 = g(I02,i)*b0 + g(I12,i)*b1 + g(I22,i)*b2 + g(I23,i)*b3;
-            b_3 = g(I03,i)*b0 + g(I13,i)*b1 + g(I23,i)*b2 + g(I33,i)*b3;
+            // b_0 = g(I00,i)*b0 + g(I01,i)*b1 + g(I02,i)*b2 + g(I03,i)*b3;
+            // b_1 = g(I01,i)*b0 + g(I11,i)*b1 + g(I12,i)*b2 + g(I13,i)*b3;
+            // b_2 = g(I02,i)*b0 + g(I12,i)*b1 + g(I22,i)*b2 + g(I23,i)*b3;
+            // b_3 = g(I03,i)*b0 + g(I13,i)*b1 + g(I23,i)*b2 + g(I33,i)*b3;
 
-            b_sq = b0 * b_0 + b1 * b_1 + b2 * b_2 + b3 * b_3;
+            // b_sq = b0 * b_0 + b1 * b_1 + b2 * b_2 + b3 * b_3;
 
 
-            fprintf(stderr,"bsq_target: %g bsq_act: %g\n", SQR(Bmag),b_sq);
+            // fprintf(stderr,"bsq_target: %g bsq_act: %g\n", SQR(Bmag),b_sq);
             if (std::isnan(Bz)){
               Real udotu = u0*u_0 + u1*u_1 + u_2*u2 + u3*u_3;
               fprintf(stderr,"xyz: %g %g %g \n Bx: %g By: %g Bz: %g \n Bmag: %g b_sq: %g u0: %g\n bmu: %g %g %g %g \n udotu: %g\n",
