@@ -254,7 +254,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             v2 = (1.0 + std::cos(kx*pcoord->x1v(i)))*
                                    (1.0 + std::cos(ky*pcoord->x2v(j)))/4.0;
           } else {
-            rand_number  = ran2(&iseed)
+            rand_number  = ran2(&iseed);
            v2 = (rand_number - 0.5)*(1.0+std::cos(ky*pcoord->x2v(j)));
           }
 
