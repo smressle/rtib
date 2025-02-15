@@ -290,13 +290,13 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           if (pcoord->x2v(j) > 0.0){ // cold
             exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
             Real A_const = exp_arg_term;
-            press = press_over_rho_interface*dc * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
+            press = press_over_rho_interface*dc * std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const);
             // press = press_over_rho_interface*dc * std::exp(pcoord->x2v(j)*exp_arg_term);
             // den = dc * std::exp(pcoord->x2v(j)*exp_arg_term);
             // Bmag = Bc * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
 
-            den = dc * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
-            Bmag = Bc * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
+            den = dc * std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const);
+            Bmag = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const));
           }
           else{ // hot
             exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
@@ -425,14 +425,27 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           for (int i=is; i<=ie+1; i++) {
 
             Real exp_arg_term,Bmag;
+
+            Real B_const = 1.0 + 2.0 * grav_acc*y0;
+            Real C_const = -2.0*grav_acc;
+
             if (pcoord->x2v(j) > 0.0){ // cold
               exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
-              Bmag = Bc * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
+              Real A_const = exp_arg_term;
+              // press = press_over_rho_interface*dc * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
+
+              Bmag = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const));
+              // Bmag = Bc * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
 
             }
             else{ // hot
               exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
-              Bmag = Bh * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
+              Real A_const = exp_arg_term;
+              // press = press_over_rho_interface*dc * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
+
+              Bmag = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const));
+
+              // Bmag = Bh * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
             }
 
 
@@ -611,15 +624,26 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           for (int i=is; i<=ie; i++) {
 
 
-            Real exp_arg_term,Bmag;
+            Real B_const = 1.0 + 2.0 * grav_acc*y0;
+            Real C_const = -2.0*grav_acc;
+
             if (pcoord->x2v(j) > 0.0){ // cold
               exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
-              Bmag = Bc * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
+              Real A_const = exp_arg_term;
+              // press = press_over_rho_interface*dc * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
+
+              Bmag = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const));
+              // Bmag = Bc * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
 
             }
             else{ // hot
               exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
-              Bmag = Bh * std::sqrt(( std::exp(pcoord->x2v(j)*exp_arg_term)));
+              Real A_const = exp_arg_term;
+              // press = press_over_rho_interface*dc * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
+
+              Bmag = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const));
+
+              // Bmag = Bh * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
             }
 
             if (pcoord->x2v(j) < rotation_region_y_min){
