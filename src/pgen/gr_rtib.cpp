@@ -170,7 +170,7 @@ Real vsq(MeshBlock *pmb, int iout)
 
 Real Phi_func(Real z, Real gravitational_acceleration,Real z0 ){
 
-  return - gravitational_acceleration * (z-z0):
+  return -gravitational_acceleration * (z-z0);
 }
 
 //========================================================================================
@@ -301,7 +301,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           else{ // hot
             exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
             Real A_const = exp_arg_term;
-            press = press_over_rho_interface*dh * std::pow( 1.0 + C_const/B_const *y, A_const/C_const);
+            press = press_over_rho_interface*dh * std::pow( 1.0 + C_const/B_const *pcoord->x2v(j), A_const/C_const);
 
 
             // press = press_over_rho_interface*dh * std::exp(pcoord->x2v(j)*exp_arg_term);
@@ -309,8 +309,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             // Bmag = Bh * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
 
 
-            den = dh * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
-            Bmag = Bh * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
+            den = dh * std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const);
+            Bmag = Bh * std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const);
           }
 
 
@@ -626,6 +626,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
             Real B_const = 1.0 + 2.0 * grav_acc*y0;
             Real C_const = -2.0*grav_acc;
+
+            Real Bmag, exp_arg_term;
 
             if (pcoord->x2v(j) > 0.0){ // cold
               exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
