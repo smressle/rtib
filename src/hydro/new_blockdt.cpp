@@ -125,7 +125,7 @@ void Hydro::NewBlockTimeStep() {
       }
 
 
-            // SR case: do nothing (assume maximum characteristic is c = 1)
+      // SR case: do nothing (assume maximum characteristic is c = 1)
       // GR case: divide cell widths by coordinate speed of light (not necessarily unity)
       if (GENERAL_RELATIVITY) {
         pmb->pcoord->CellMetric(k, j, is, ie, g_, gi_);

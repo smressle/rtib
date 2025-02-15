@@ -70,6 +70,8 @@ void linear_metric_3D(Real x1, Real x2, Real x3, ParameterInput *pin,
     AthenaArray<Real> &g, AthenaArray<Real> &g_inv, AthenaArray<Real> &dg_dx1,
     AthenaArray<Real> &dg_dx2, AthenaArray<Real> &dg_dx3);
 
+Real Phi_func(Real z, Real gravitational_acceleration,Real z0 );
+
 
 namespace {
 // made global to share with BC functions
@@ -166,6 +168,11 @@ Real vsq(MeshBlock *pmb, int iout)
   return vsq;
 }
 
+Real Phi_func(Real z, Real gravitational_acceleration,Real z0 ){
+
+  return - gravitational_acceleration * (z-z0):
+}
+
 //========================================================================================
 //! \fn void MeshBlock::ProblemGenerator(ParameterInput *pin)
 //  \brief Problem Generator for the Rayleigh-Taylor instability test
@@ -253,6 +260,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
   if (block_size.nx3 == 1) {
     grav_acc = pin->GetReal("problem", "grav_acc");
+    Real y0 = pin->GetReal("problem", "y0");
     for (int k=kl; k<=ku; k++) {
       for (int j=jl; j<=ju; j++) {
         pcoord->CellMetric(k, j, il, iu, g, gi);
@@ -262,19 +270,47 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           Real den=1.0;
           if (pcoord->x2v(j) > 0.0) den *= drat;
 
+          // Real Phi_const = Phi/
+
+          // P = P0 * ( B + Cy )^{A/C}
+
+          //B + Cy = 1 + 2Phi
+          // B + Cy = 1 - 2 grav_acc * (y-y0) = 1 +2 grav_acc*y0 - 2 grav_acc * y
+          // B = 1 + 2 grav_acc*y0
+          // C = - 2 grav_acc
+          //A = exp_arg
+
+          //P0 * (B^(A/C) = press_over_rho_interface*d
+          //P0  = press_over_rho_interface*d
+
+          Real B_const = 1.0 + 2.0 * grav_acc*y0;
+          Real C_const = -2.0*grav_acc;
+
           Real exp_arg_term,press,Bmag;
           if (pcoord->x2v(j) > 0.0){ // cold
             exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
-            press = press_over_rho_interface*dc * std::exp(pcoord->x2v(j)*exp_arg_term);
-            den = dc * std::exp(pcoord->x2v(j)*exp_arg_term);
-            Bmag = Bc * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
+            Real A_const = exp_arg_term;
+            press = press_over_rho_interface*dc * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
+            // press = press_over_rho_interface*dc * std::exp(pcoord->x2v(j)*exp_arg_term);
+            // den = dc * std::exp(pcoord->x2v(j)*exp_arg_term);
+            // Bmag = Bc * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
 
+            den = dc * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
+            Bmag = Bc * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
           }
           else{ // hot
             exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
-            press = press_over_rho_interface*dh * std::exp(pcoord->x2v(j)*exp_arg_term);
-            den = dh * std::exp(pcoord->x2v(j)*exp_arg_term);
-            Bmag = Bh * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
+            Real A_const = exp_arg_term;
+            press = press_over_rho_interface*dh * std::pow( 1.0 + C_const/B_const *y, A_const/C_const);
+
+
+            // press = press_over_rho_interface*dh * std::exp(pcoord->x2v(j)*exp_arg_term);
+            // den = dh * std::exp(pcoord->x2v(j)*exp_arg_term);
+            // Bmag = Bh * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
+
+
+            den = dh * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
+            Bmag = Bh * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
           }
 
 
@@ -1774,19 +1810,19 @@ void linear_metric_3D(Real x1, Real x2, Real x3, ParameterInput *pin,
 
   Real z0 = pin->GetReal("problem", "z0");
 
-  Real Phi = grav_acc*(z-z0);
+  Real Phi = Phi_func(z,grav_acc,z0); 
 
   // Set covariant components
-  g(I00) = -(1.0 -2.0*Phi);
+  g(I00) = -(1.0 +2.0*Phi);
   g(I01) = 0;
   g(I02) = 0;
-  g(I03) = 2.0 * Phi;
+  g(I03) = -2.0 * Phi;
   g(I11) = 1.0;
   g(I12) = 0;
   g(I13) = 0;
   g(I22) = 1.0 ;
   g(I23) = 0;
-  g(I33) = 1.0 + 2.0 * Phi ;
+  g(I33) = 1.0 - 2.0 * Phi ;
 
 
 
@@ -1860,16 +1896,16 @@ void linear_metric_2D(Real x1, Real x2, Real x3, ParameterInput *pin,
 
 
   Real y0 = pin->GetReal("problem", "y0");
-  Real Phi = grav_acc*(y-y0);
+  Real Phi = Phi_func(y,grav_acc,y0);  // -grav_acc*(y-y0);
   // Set covariant components
-  g(I00) = -(1.0 -2.0*Phi);
+  g(I00) = -(1.0 + 2.0*Phi);
   g(I01) = 0;
-  g(I02) = 2.0*Phi;
+  g(I02) = -2.0*Phi;
   g(I03) = 0;
   g(I11) = 1.0;
   g(I12) = 0;
   g(I13) = 0;
-  g(I22) = 1.0 + 2.0 * Phi;
+  g(I22) = 1.0 - 2.0 * Phi;
   g(I23) = 0;
   g(I33) = 1.0 ;
 
