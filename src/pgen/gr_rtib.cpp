@@ -1125,6 +1125,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           pcoord->Face2Metric(k, j, il, iu+1, g, gi);
           for (int i=is; i<=ie; i++) {
 
+
+            Real exp_arg_term,Bmag;
             Real B_const = 1.0 + 2.0 * grav_acc*z0;
             Real C_const = -2.0*grav_acc;
 
