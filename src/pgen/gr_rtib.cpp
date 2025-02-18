@@ -415,11 +415,36 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       //Bhx = Bh*std::cos(angle_with_x_h)
       //Bhz = Bh*std::sin(angle_with_x_c)
 
-      Real Bx_slope = (Bcx - Bhx) / ( length_of_rotation_region) ; 
-      Real Bz_slope = (Bcz - Bhz) / ( length_of_rotation_region) ; 
+      // Real Bx_slope = (Bcx - Bhx) / ( length_of_rotation_region) ; 
+      // Real Bz_slope = (Bcz - Bhz) / ( length_of_rotation_region) ; 
 
       Real Bx, Bz,By;
 
+
+      Real B_const = 1.0 + 2.0 * grav_acc*y0;
+      Real C_const = -2.0*grav_acc;
+
+
+      Real exp_arg_term_rotation_region_ymax = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
+      Real A_const_rotation_region_ymax = exp_arg_term_rotation_region_ymax;
+
+      Real Bmag_rotation_region_ymax = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const *rotation_region_y_max, A_const_rotation_region_ymax/C_const));
+
+      Real Bx_rotation_region_ymax = Bcx * Bmag_rotation_region_ymax/Bc;
+      Real Bz_rotation_region_ymax = Bcz * Bmag_rotation_region_ymax/Bc;
+
+
+      Real exp_arg_term_rotation_region_ymin = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
+      Real A_const_rotation_region_ymin = exp_arg_term;
+
+      Real Bmag_rotation_region_ymin = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const *rotation_region_y_min, A_const_rotation_region_ymin/C_const));
+
+      Real Bx_rotation_region_ymin = Bhx * Bmag_rotation_region_ymin/Bh;
+      Real Bz_rotation_region_ymin = Bhz * Bmag_rotation_region_ymin/Bh;
+
+
+      Real Bx_slope = (Bx_rotation_region_ymax - Bx_rotation_region_ymin) / ( length_of_rotation_region) ; 
+      Real Bz_slope = (Bz_rotation_region_ymax - Bz_rotation_region_ymin) / ( length_of_rotation_region) ; 
 
       
       for (int k=ks; k<=ke; k++) {
@@ -428,9 +453,6 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           for (int i=is; i<=ie+1; i++) {
 
             Real exp_arg_term,Bmag;
-
-            Real B_const = 1.0 + 2.0 * grav_acc*y0;
-            Real C_const = -2.0*grav_acc;
 
             if (pcoord->x2v(j) > 0.0){ // cold
               exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
@@ -465,9 +487,12 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
 
 
-              Bx = Bhx_norm * std::sin((1.0-w)*theta_rot)/(sin(theta_rot) + 1e-10) + Bcx_norm*std::sin(w*theta_rot)/(sin(theta_rot) + 1e-10);
-              Bz = Bhz_norm * std::sin((1.0-w)*theta_rot)/(sin(theta_rot) + 1e-10) + Bcz_norm*std::sin(w*theta_rot)/(sin(theta_rot) + 1e-10);
+              // Bx = Bhx_norm * std::sin((1.0-w)*theta_rot)/(sin(theta_rot) + 1e-10) + Bcx_norm*std::sin(w*theta_rot)/(sin(theta_rot) + 1e-10);
+              // Bz = Bhz_norm * std::sin((1.0-w)*theta_rot)/(sin(theta_rot) + 1e-10) + Bcz_norm*std::sin(w*theta_rot)/(sin(theta_rot) + 1e-10);
 
+
+              Bx = Bx_rotation_region_ymin + Bx_slope * ( pcoord->x2v(j) - rotation_region_y_min);
+              Bz = Bz_rotation_region_ymin + Bz_slope * ( pcoord->x2v(j) - rotation_region_y_min);
               //Now normalize
 
               Real B_norm = std::sqrt( SQR(Bx) + SQR(Bz) );
@@ -632,10 +657,6 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           pcoord->Face3Metric(k, j, il, iu, g, gi);
           for (int i=is; i<=ie; i++) {
 
-
-            Real B_const = 1.0 + 2.0 * grav_acc*y0;
-            Real C_const = -2.0*grav_acc;
-
             Real Bmag, exp_arg_term;
 
             if (pcoord->x2v(j) > 0.0){ // cold
@@ -669,10 +690,13 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
               // Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x2v(j) - rotation_region_y_min);
               // Bz = Bhz_norm + Bz_slope_norm * ( pcoord->x2v(j) - rotation_region_y_min);
 
-              
-              Bx = Bhx_norm * std::sin((1.0-w)*theta_rot)/(sin(theta_rot) + 1e-10) + Bcx_norm*std::sin(w*theta_rot)/(sin(theta_rot) + 1e-10);
-              Bz = Bhz_norm * std::sin((1.0-w)*theta_rot)/(sin(theta_rot) + 1e-10) + Bcz_norm*std::sin(w*theta_rot)/(sin(theta_rot) + 1e-10);
 
+              // Bx = Bhx_norm * std::sin((1.0-w)*theta_rot)/(sin(theta_rot) + 1e-10) + Bcx_norm*std::sin(w*theta_rot)/(sin(theta_rot) + 1e-10);
+              // Bz = Bhz_norm * std::sin((1.0-w)*theta_rot)/(sin(theta_rot) + 1e-10) + Bcz_norm*std::sin(w*theta_rot)/(sin(theta_rot) + 1e-10);
+
+
+              Bx = Bx_rotation_region_ymin + Bx_slope * ( pcoord->x2v(j) - rotation_region_y_min);
+              Bz = Bz_rotation_region_ymin + Bz_slope * ( pcoord->x2v(j) - rotation_region_y_min);
 
               //Now normalize
 
