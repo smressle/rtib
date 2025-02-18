@@ -435,7 +435,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
 
       Real exp_arg_term_rotation_region_ymin = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
-      Real A_const_rotation_region_ymin = exp_arg_term;
+      Real A_const_rotation_region_ymin = exp_arg_term_rotation_region_ymin;
 
       Real Bmag_rotation_region_ymin = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const *rotation_region_y_min, A_const_rotation_region_ymin/C_const));
 
