@@ -340,7 +340,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           // u^0 = sqrt[ -1/( g_00 + g_11 v + g_22 v2 + g_33 v3) ]
 
           Real u0 = std::sqrt( -1 / ( g(I00,i) + g(I11,i)*SQR(v1) + g(I22,i)*SQR(v2) + g(I33,i)*SQR(v3) + 
-                                      2.0*g(I01,i)*v1 + 2.0*g(I02)*v2 + 2.0*g(I03,i)*v3  )   ); 
+                                      2.0*g(I01,i)*v1 + 2.0*g(I02,i)*v2 + 2.0*g(I03,i)*v3  )   ); 
           Real u1 = u0*v1;
           Real u2 = u0*v2;
           Real u3 = u0*v3;
@@ -928,7 +928,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
 
           Real u0 = std::sqrt( -1 / ( g(I00,i) + g(I11,i)*SQR(v1) + g(I22,i)*SQR(v2) + g(I33,i)*SQR(v3) + 
-                                      2.0*g(I01,i)*v1 + 2.0*g(I02)*v2 + 2.0*g(I03,i)*v3  )   ); 
+                                      2.0*g(I01,i)*v1 + 2.0*g(I02,i)*v2 + 2.0*g(I03,i)*v3  )   ); 
           Real u1 = u0*v1;
           Real u2 = u0*v2;
           Real u3 = u0*v3;
@@ -1440,7 +1440,7 @@ void ProjectPressureInnerX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
 
             //Now recompute primitives given this coordinate velocity in the ghost zone
             u0 = std::sqrt( -1 / ( g2(I00,i) + g2(I11,i)*SQR(v1) + g2(I22,i)*SQR(v2) + g2(I33,i)*SQR(v3) + 
-                                      2.0*g2(I01,i)*v1 + 2.0*g2(I02)*v2 + 2.0*g2(I03,i)*v3  )   ); 
+                                      2.0*g2(I01,i)*v1 + 2.0*g2(I02,i)*v2 + 2.0*g2(I03,i)*v3  )   ); 
             u1 = u0*v1;
             u2 = u0*v2;
             u3 = u0*v3;
@@ -1567,7 +1567,7 @@ void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
 
             //Now recompute primitives given this coordinate velocity in the ghost zone
             u0 = std::sqrt( -1 / ( g2(I00,i) + g2(I11,i)*SQR(v1) + g2(I22,i)*SQR(v2) + g2(I33,i)*SQR(v3) + 
-                                      2.0*g2(I01,i)*v1 + 2.0*g2(I02)*v2 + 2.0*g2(I03,i)*v3  )   ); 
+                                      2.0*g2(I01,i)*v1 + 2.0*g2(I02,i)*v2 + 2.0*g2(I03,i)*v3  )   ); 
             u1 = u0*v1;
             u2 = u0*v2;
             u3 = u0*v3;
@@ -1690,7 +1690,7 @@ void ProjectPressureInnerX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
 
             //Now recompute primitives given this coordinate velocity in the ghost zone
             u0 = std::sqrt( -1 / ( g2(I00,i) + g2(I11,i)*SQR(v1) + g2(I22,i)*SQR(v2) + g2(I33,i)*SQR(v3) + 
-                                      2.0*g2(I01,i)*v1 + 2.0*g2(I02)*v2 + 2.0*g2(I03,i)*v3  )   ); 
+                                      2.0*g2(I01,i)*v1 + 2.0*g2(I02,i)*v2 + 2.0*g2(I03,i)*v3  )   ); 
             u1 = u0*v1;
             u2 = u0*v2;
             u3 = u0*v3;
@@ -1819,7 +1819,7 @@ void ProjectPressureOuterX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
 
             //Now recompute primitives given this coordinate velocity in the ghost zone
             u0 = std::sqrt( -1 / ( g2(I00,i) + g2(I11,i)*SQR(v1) + g2(I22,i)*SQR(v2) + g2(I33,i)*SQR(v3) + 
-                                      2.0*g2(I01,i)*v1 + 2.0*g2(I02)*v2 + 2.0*g2(I03,i)*v3  )   ); 
+                                      2.0*g2(I01,i)*v1 + 2.0*g2(I02,i)*v2 + 2.0*g2(I03,i)*v3  )   ); 
             u1 = u0*v1;
             u2 = u0*v2;
             u3 = u0*v3;
