@@ -480,7 +480,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             else{ // hot
               exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
               Real A_const = exp_arg_term;
-              REal B_const = 1.0 + 2.0 * grav_acc*y0;
+              Real B_const = 1.0 + 2.0 * grav_acc*y0;
               // press = press_over_rho_interface*dc * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
 
               Bmag = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const));
@@ -950,9 +950,6 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       Real Bx_slope_norm = (Bcx_norm - Bhx_norm) / ( length_of_rotation_region) ; 
       Real By_slope_norm = (Bcy_norm - Bhy_norm) / ( length_of_rotation_region) ;
 
-
-      Real B_const = 1.0 + 2.0 * grav_acc*z0;
-      if (pcoord->x3v(k) > 0.0) B_const += -SQR(shear_velocity);
       Real C_const = -2.0*grav_acc;
 
 
@@ -1145,14 +1142,12 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
 
             Real exp_arg_term,Bmag;
-            Real B_const = 1.0 + 2.0 * grav_acc*z0;
-            if (pcoord->x3v(k) > 0.0) B_const += -SQR(shear_velocity);
             Real C_const = -2.0*grav_acc;
 
             if (pcoord->x3v(k) > 0.0){ // cold
               exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
               Real A_const = exp_arg_term;
-              Real B_const = Real B_const = 1.0 + 2.0 * grav_acc*z0 - SQR(shear_velocity);
+              Real B_const = 1.0 + 2.0 * grav_acc*z0 - SQR(shear_velocity);
 
               Bmag = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const));
 
@@ -1163,7 +1158,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
               exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
               // Bmag = Bh * std::sqrt( std::exp(pcoord->x3v(k)*exp_arg_term));
               Real A_const = exp_arg_term;
-              Real B_const = Real B_const = 1.0 + 2.0 * grav_acc*z0;
+              Real B_const =  1.0 + 2.0 * grav_acc*z0;
 
               Bmag = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const));
             }
