@@ -228,6 +228,13 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
   Real beta_h = press_over_rho_interface/sigma_h * 2.0;
 
 
+  grav_acc = pin->GetReal("problem", "grav_acc");
+  Real f_kep_shear = pin->GetOrAddReal("problem","f_kep_shear",0.0);
+  Real effective_graviational_radius = std::sqrt(1.0/std::fabs(grav_acc));
+  Real effective_keplerian_velocity = std::sqrt(1/effective_graviational_radius);
+  Real shear_velocity = f_kep_shear * effective_keplerian_velocity;
+
+
   Real rho_h = 1.0;
 
 
@@ -283,7 +290,27 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           //P0 * (B^(A/C) = press_over_rho_interface*d
           //P0  = press_over_rho_interface*d
 
-          Real B_const = 1.0 + 2.0 * grav_acc*y0;
+
+          Real rand_number;
+          if (iprob == 1) {
+            v2 = (1.0 + std::cos(kx*pcoord->x1v(i)))*
+                                   (1.0 + std::cos(ky*pcoord->x2v(j)))/4.0;
+          } else {
+            rand_number  = ran2(&iseed);
+           v2 = (rand_number - 0.5)*(1.0+std::cos(ky*pcoord->x2v(j)));
+          }
+
+          // fprintf(stderr,"v2: %g rand_number: %g ky: %g y: %g\n",v2, rand_number,ky,pcoord->x2v(j));
+
+        
+          v2 *= amp*cs;
+
+          Real v1 = 0.0;
+          if (pcoord->x2v(j) > 0.0) v1 = shear_velocity;
+          Real v3 = 0;
+
+
+          Real B_const = 1.0 + 2.0 * grav_acc*y0 - SQR(v1);
           Real C_const = -2.0*grav_acc;
 
           Real exp_arg_term,press,Bmag;
@@ -313,25 +340,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             Bmag = Bh * std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const);
           }
 
-
-
-          Real rand_number;
-          if (iprob == 1) {
-            v2 = (1.0 + std::cos(kx*pcoord->x1v(i)))*
-                                   (1.0 + std::cos(ky*pcoord->x2v(j)))/4.0;
-          } else {
-            rand_number  = ran2(&iseed);
-           v2 = (rand_number - 0.5)*(1.0+std::cos(ky*pcoord->x2v(j)));
-          }
-
-          // fprintf(stderr,"v2: %g rand_number: %g ky: %g y: %g\n",v2, rand_number,ky,pcoord->x2v(j));
-
           phydro->w(IDN,k,j,i) = den;
-        
-          v2 *= amp*cs;
 
-          Real v1 = 0;
-          Real v3 = 0;
 
           // u^\mu u^\nu g_\mu \nu = -1 
           // u^\mu = dt/dTau (1, dx/dt, dy/dt, dz/dt) = u^0 (1, v1,v2,v3)
@@ -421,14 +431,15 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       Real Bx, Bz,By;
 
 
-      Real B_const = 1.0 + 2.0 * grav_acc*y0;
+
       Real C_const = -2.0*grav_acc;
 
 
       Real exp_arg_term_rotation_region_ymax = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
       Real A_const_rotation_region_ymax = exp_arg_term_rotation_region_ymax;
+      Real B_const_rotation_region_ymax = 1.0 + 2.0 * grav_acc*y0 - SQR(shear_velocity);
 
-      Real Bmag_rotation_region_ymax = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const *rotation_region_y_max, A_const_rotation_region_ymax/C_const));
+      Real Bmag_rotation_region_ymax = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const_rotation_region_ymax *rotation_region_y_max, A_const_rotation_region_ymax/C_const));
 
       Real Bx_rotation_region_ymax = Bcx * Bmag_rotation_region_ymax/Bc;
       Real Bz_rotation_region_ymax = Bcz * Bmag_rotation_region_ymax/Bc;
@@ -436,8 +447,10 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
       Real exp_arg_term_rotation_region_ymin = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
       Real A_const_rotation_region_ymin = exp_arg_term_rotation_region_ymin;
+      Real B_const_rotation_region_ymin = 1.0 + 2.0 * grav_acc*y0;
 
-      Real Bmag_rotation_region_ymin = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const *rotation_region_y_min, A_const_rotation_region_ymin/C_const));
+
+      Real Bmag_rotation_region_ymin = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const_rotation_region_ymin *rotation_region_y_min, A_const_rotation_region_ymin/C_const));
 
       Real Bx_rotation_region_ymin = Bhx * Bmag_rotation_region_ymin/Bh;
       Real Bz_rotation_region_ymin = Bhz * Bmag_rotation_region_ymin/Bh;
@@ -457,6 +470,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             if (pcoord->x2v(j) > 0.0){ // cold
               exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
               Real A_const = exp_arg_term;
+              Real B_const = 1.0 + 2.0 * grav_acc*y0 - SQR(shear_velocity);
               // press = press_over_rho_interface*dc * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
 
               Bmag = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const));
@@ -466,6 +480,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             else{ // hot
               exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
               Real A_const = exp_arg_term;
+              REal B_const = 1.0 + 2.0 * grav_acc*y0;
               // press = press_over_rho_interface*dc * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
 
               Bmag = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const));
@@ -501,21 +516,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
               Bx = Bx * Bmag/B_norm;
               Bz = Bz * Bmag/B_norm;
               }
-            // else if (pcoord->x2v(j) < rotation_region_y_max){
-            //   Bx = Bhx + Bx_slope * ( pcoord->x2v(j) - rotation_region_y_min);
-            //   Bz = Bhz + Bz_slope * ( pcoord->x2v(j) - rotation_region_y_min);
 
-            //   // Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x2v(j) - rotation_region_y_min);
-            //   // Bz = Bhz_norm + Bz_slope_norm * ( pcoord->x2v(j) - rotation_region_y_min);
-
-            //   //Now normalize
-
-            //   Real B_norm = std::sqrt( SQR(Bx) + SQR(Bz) );
-            //   // Bx = Bx * Bc/B_norm;
-            //   // Bz = Bz * Bc/B_norm;
-            //   Bx = Bx * Bmag/B_norm;
-            //   Bz = Bz * Bmag/B_norm;
-            // }
             else{
               Bx = Bcx * Bmag/Bc;
               Bz = Bcz * Bmag/Bc;
@@ -577,69 +578,6 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             Bz = Bz * Bmag/std::sqrt(b_sq);
 
 
-            //Then b^0 and b^i \propto A_norm 
-            //Use b^\mu b_\mu = Bmag^2 and b^\mu u^\nu g_\mu \nu =0
-            // b^0 u^0 g_00 + A_norm( u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33) = 0
-            // b^0 b^0 g_00 + A_norm^2 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
-
-            // solve for b^0 and A_norm
-
-            // b^0 = - A_norm/(u^0 g_00) (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)
-            // (b^0)^2 =  Bmag^2/g_00 -A_norm^2 /g_00 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33)  
-
-            // A_norm^2 /(u^0 g_00)^2  (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 = Bmag^2/g_00 -A_norm^2/g_00 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33)
-            // A_norm^2 (1/(u^0)^2/g_00 (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 +   (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
-            // A_norm = Bmag sqrt(1/ ... )
-
-            //Assume b^\mu = (b^0, A_norm Bx, A_norm By, A_norm Bz)
-            //Use b^\mu b_\mu = Bmag^2 and b^\mu u^\nu g_\mu \nu =0
-            // b^0 u^0 g_00 + A_norm( u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33) = 0
-            // b^0 b^0 g_00 + A_norm^2 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
-
-            // solve for b^0 and A_norm
-
-            // b^0 = - A_norm/(u^0 g_00) (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)
-            // (b^0)^2 =  Bmag^2/g_00 -A_norm^2 /g_00 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33)  
-
-            // A_norm^2 /(u^0 g_00)^2  (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 = Bmag^2/g_00 -A_norm^2/g_00 (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33)
-            // A_norm^2 (1/(u^0)^2/g_00 (u^1 Bx g_11 + u^2 By g_22 + u^3 Bz g_33)^2 +   (Bx^2 g_11 + By^2 g_22 + Bz^2 g_33) = Bmag^2
-            // A_norm = Bmag sqrt(1/ ... )
-
-            // Real u_dot_b = u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) +
-
-            //                u0 * Bx * g(I00,i) + u0 * By * g(I02,i) + u0 * Bz * g(I03,i);
-
-            // Real num_sq = SQR(Bmag) ;
-
-            // Real denom_sq = 1.0/SQR(u0)/g(I00) * SQR(u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) )
-            //                  + ( SQR(Bx) * g(I11,i) + SQR(By) * g(I22,i) + SQR(Bz) * g(I33,i) );
-
-
-            // Real A_norm = std::sqrt(num_sq/denom_sq);
-
-            // Real b0 = -A_norm / (u0*g(I00,i)) * ( u1 * Bx * g(I11,i) + u2 * By * g(I22,i) + u3 * Bz * g(I33,i) );
-
-            // Real b1 = A_norm * Bx;
-            // Real b2 = A_norm * By;
-            // Real b3 = A_norm * Bz;
-
-            //now convert back to three vector (Equation 17 Gammie+ 2003)
-
-            // if (pcoord->x2v(j) < (L/2.0  +  pmy_mesh->mesh_size.x2min) ){
-            //   Bx = Bhx * Bmag/Bh;
-            //   Bz = Bhz * Bmag/Bh;
-            // }
-            // else{
-            //   Bx = Bcx * Bmag/Bc;
-            //   Bz = Bcz * Bmag/Bc;
-            // }
-
-            // Real Lorentz = 1.0/std::sqrt(-g(I00,i) - SQR(v2));
-
-            // Real b1 = Bx;
-            // Real b2 = 0.0;
-            // Real b3 = Bz; 
-            //pfield->b.x1f(k,j,i) = b1 * u0 - b0 * u1;
             pfield->b.x1f(k,j,i) = Bx;
           }
         }
@@ -662,6 +600,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             if (pcoord->x2v(j) > 0.0){ // cold
               exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
               Real A_const = exp_arg_term;
+              Real B_const = 1.0 + 2.0 * grav_acc*y0 - SQR(shear_velocity);
+
               // press = press_over_rho_interface*dc * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
 
               Bmag = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const));
@@ -671,6 +611,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             else{ // hot
               exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
               Real A_const = exp_arg_term;
+              Real B_const = 1.0 + 2.0 * grav_acc*y0;
               // press = press_over_rho_interface*dc * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
 
               Bmag = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const));
@@ -866,7 +807,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
   } else {
     grav_acc = pin->GetReal("problem", "grav_acc");
-    Real z0 = pin->GetReal("problem", "y0");
+    Real z0 = pin->GetReal("problem", "z0");
     for (int k=kl; k<=ku; k++) {
       for (int j=jl; j<=ju; j++) {
         pcoord->CellMetric(k, j, il, iu, g, gi);
@@ -879,7 +820,6 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           if (pcoord->x3v(k) > 0.0) den *= drat;
 
 
-          Real B_const = 1.0 + 2.0 * grav_acc*z0;
           Real C_const = -2.0*grav_acc;
 
 
@@ -887,6 +827,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           if (pcoord->x3v(k) > 0.0){ // cold
             exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
             Real A_const = exp_arg_term;
+            Real B_const = 1.0 + 2.0 * grav_acc*z0 - SQR(shear_velocity);
             press = press_over_rho_interface*dc * std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const);
             // press = press_over_rho_interface*dc * std::exp(pcoord->x3v(k)*exp_arg_term);
 
@@ -899,6 +840,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           else{ // hot
             exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
             Real A_const = exp_arg_term;
+             Real B_const = 1.0 + 2.0 * grav_acc*z0;
             press = press_over_rho_interface*dh * std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const);
             // press = press_over_rho_interface*dh * std::exp(pcoord->x3v(k)*exp_arg_term);
             den = dh * std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const);
@@ -922,7 +864,10 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
           phydro->w(IDN,k,j,i) = den;
 
-          Real v1 = 0;
+
+          Real v1 = 0.0;
+          if (pcoord->x3v(k) > 0.0) v1 = shear_velocity;
+
           Real v2 = 0;
           v3 *= (amp*cs);
 
@@ -1007,13 +952,15 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
 
       Real B_const = 1.0 + 2.0 * grav_acc*z0;
+      if (pcoord->x3v(k) > 0.0) B_const += -SQR(shear_velocity);
       Real C_const = -2.0*grav_acc;
 
 
       Real exp_arg_term_rotation_region_zmax = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
       Real A_const_rotation_region_zmax = exp_arg_term_rotation_region_zmax;
+      Real B_const_rotation_region_zmax = 1.0 + 2.0 * grav_acc*z0 - SQR(shear_velocity);
 
-      Real Bmag_rotation_region_zmax = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const *rotation_region_z_max, A_const_rotation_region_zmax/C_const));
+      Real Bmag_rotation_region_zmax = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const_rotation_region_zmax *rotation_region_z_max, A_const_rotation_region_zmax/C_const));
 
       Real Bx_rotation_region_zmax = Bcx * Bmag_rotation_region_zmax/Bc;
       Real By_rotation_region_zmax = Bcy * Bmag_rotation_region_zmax/Bc;
@@ -1021,8 +968,9 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
       Real exp_arg_term_rotation_region_zmin = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
       Real A_const_rotation_region_zmin = exp_arg_term_rotation_region_zmin;
+      Real B_const_rotation_region_zmin = 1.0 + 2.0 * grav_acc*z0;
 
-      Real Bmag_rotation_region_zmin = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const *rotation_region_z_min, A_const_rotation_region_zmin/C_const));
+      Real Bmag_rotation_region_zmin = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const_rotation_region_zmin *rotation_region_z_min, A_const_rotation_region_zmin/C_const));
 
       Real Bx_rotation_region_zmin = Bhx * Bmag_rotation_region_zmin/Bh;
       Real By_rotation_region_zmin = Bhy * Bmag_rotation_region_zmin/Bh;
@@ -1046,6 +994,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             if (pcoord->x3v(k) > 0.0){ // cold
               exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
               Real A_const = exp_arg_term;
+              Real B_const = 1.0 + 2.0 * grav_acc*z0 - SQR(shear_velocity);
 
               Bmag = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const));
 
@@ -1056,6 +1005,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
               exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
               // Bmag = Bh * std::sqrt( std::exp(pcoord->x3v(k)*exp_arg_term));
               Real A_const = exp_arg_term;
+              Real B_const = 1.0 + 2.0 * grav_acc*z0;
 
               Bmag = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const));
             }
@@ -1196,11 +1146,13 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
             Real exp_arg_term,Bmag;
             Real B_const = 1.0 + 2.0 * grav_acc*z0;
+            if (pcoord->x3v(k) > 0.0) B_const += -SQR(shear_velocity);
             Real C_const = -2.0*grav_acc;
 
             if (pcoord->x3v(k) > 0.0){ // cold
               exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
               Real A_const = exp_arg_term;
+              Real B_const = Real B_const = 1.0 + 2.0 * grav_acc*z0 - SQR(shear_velocity);
 
               Bmag = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const));
 
@@ -1211,6 +1163,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
               exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
               // Bmag = Bh * std::sqrt( std::exp(pcoord->x3v(k)*exp_arg_term));
               Real A_const = exp_arg_term;
+              Real B_const = Real B_const = 1.0 + 2.0 * grav_acc*z0;
 
               Bmag = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const));
             }
