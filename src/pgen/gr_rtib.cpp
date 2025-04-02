@@ -124,7 +124,7 @@ void MeshBlock::InitUserMeshBlockData(ParameterInput *pin) {
   ruser_meshblock_data[1].NewAthenaArray(NMETRIC, ie + NGHOST + 1);
 
 
-  AllocateUserOutputVariables(1);
+  AllocateUserOutputVariables(3);
 
 }
 
@@ -275,6 +275,8 @@ void MeshBlock::UserWorkInLoop() {
               +face3p(i)*b.x3f(k+1,j,i)-face3m(i)*b.x3f(k,j,i));
 
         user_out_var(0,k,j,i) = divb;
+        user_out_var(1,k,j,i) = b.x3f(k,j,i);
+        user_out_var(2,k,j,i) = b.x3f(k+1,j,i);
       }
     }
   }
