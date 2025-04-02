@@ -1442,6 +1442,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
     bb.DeleteAthenaArray();
   }
     
+
+    UserWorkInLoop();
   return;
 }
 
