@@ -1460,9 +1460,9 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             u3 = u0*v3;
 
             // Now convert to Athena++ velocities (see White+ 2016)
-            Real uu1 = u1 - gi(I01,i) / gi(I00,i) * u0;
-            Real uu2 = u2 - gi(I02,i) / gi(I00,i) * u0;
-            Real uu3 = u3 - gi(I03,i) / gi(I00,i) * u0;
+            uu1 = u1 - gi(I01,i) / gi(I00,i) * u0;
+            uu2 = u2 - gi(I02,i) / gi(I00,i) * u0;
+            uu3 = u3 - gi(I03,i) / gi(I00,i) * u0;
 
             phydro->w(IM1,k,j,i) = uu1;
             phydro->w(IM2,k,j,i) = uu2;
