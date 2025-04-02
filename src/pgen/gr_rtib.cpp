@@ -184,15 +184,15 @@ void MeshBlock::UserWorkInLoop() {
   int j = je;
   int i = is + 4;
 
-  pmb->pcoord->CellMetric(k, j, is, ie, g, gi);
+  pcoord->CellMetric(k, j, is, ie, g, gi);
   Real g00 = g(I00,i);
   Real g22 = g(I22,i);
-  pmb->pcoord->CellMetric(k, j+1, is, ie, g, gi);
+  pcoord->CellMetric(k, j+1, is, ie, g, gi);
 
   Real g00p1 = g(I00,i);
   Real g22p1 = g(I22,i);
 
-  pmb->pcoord->CellMetric(k, j+2, is, ie, g, gi);
+  pcoord->CellMetric(k, j+2, is, ie, g, gi);
 
   Real g00p2 = g(I00,i);
   Real g22p2 = g(I22,i);
