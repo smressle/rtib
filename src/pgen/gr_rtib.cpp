@@ -123,6 +123,9 @@ void MeshBlock::InitUserMeshBlockData(ParameterInput *pin) {
   ruser_meshblock_data[0].NewAthenaArray(NMETRIC, ie + NGHOST + 1);
   ruser_meshblock_data[1].NewAthenaArray(NMETRIC, ie + NGHOST + 1);
 
+
+  AllocateUserOutputVariables(1);
+
 }
 
 
@@ -248,6 +251,39 @@ void MeshBlock::UserWorkInLoop() {
   //   pfield->bcc(IB2,k,j,i),pfield->bcc(IB2,k,j-1,i),pfield->bcc(IB2,k,j-2,i),
   //   g00,g00p1,g00p2,
   //   g22,g22p1,g22p2 );
+
+
+  AthenaArray<Real> face1, face2p, face2m, face3p, face3m;
+  FaceField &b = pfield->b;
+
+  face1.NewAthenaArray((ie-is)+2*NGHOST+2);
+  face2p.NewAthenaArray((ie-is)+2*NGHOST+1);
+  face2m.NewAthenaArray((ie-is)+2*NGHOST+1);
+  face3p.NewAthenaArray((ie-is)+2*NGHOST+1);
+  face3m.NewAthenaArray((ie-is)+2*NGHOST+1);
+
+  for(int k=ks; k<=ke; k++) {
+    for(int j=js; j<=je; j++) {
+      pcoord->Face1Area(k,   j,   is, ie+1, face1);
+      pcoord->Face2Area(k,   j+1, is, ie,   face2p);
+      pcoord->Face2Area(k,   j,   is, ie,   face2m);
+      pcoord->Face3Area(k+1, j,   is, ie,   face3p);
+      pcoord->Face3Area(k,   j,   is, ie,   face3m);
+      for(int i=is; i<=ie; i++) {
+        Real divb=(face1(i+1)*b.x1f(k,j,i+1)-face1(i)*b.x1f(k,j,i)
+              +face2p(i)*b.x2f(k,j+1,i)-face2m(i)*b.x2f(k,j,i)
+              +face3p(i)*b.x3f(k+1,j,i)-face3m(i)*b.x3f(k,j,i));
+
+        user_out_var(0,k,j,i) = divb;
+      }
+    }
+  }
+
+  face1.DeleteAthenaArray();
+  face2p.DeleteAthenaArray();
+  face2m.DeleteAthenaArray();
+  face3p.DeleteAthenaArray();
+  face3m.DeleteAthenaArray();
   return;
 }
 
