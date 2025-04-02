@@ -176,34 +176,34 @@ Real Phi_func(Real z, Real gravitational_acceleration,Real z0 ){
 void MeshBlock::UserWorkInLoop() {
 
 
-  // AthenaArray<Real> &g = ruser_meshblock_data[0];
-  // AthenaArray<Real> &gi = ruser_meshblock_data[1];
+  AthenaArray<Real> &g = ruser_meshblock_data[0];
+  AthenaArray<Real> &gi = ruser_meshblock_data[1];
 
 
-  // int k = ks;
-  // int j = je;
-  // int i = is + 4;
+  int k = ks;
+  int j = js;
+  int i = is + 4;
 
-  // pcoord->CellMetric(k, j, is, ie, g, gi);
-  // Real g00 = g(I00,i);
-  // Real g22 = g(I22,i);
-  // pcoord->CellMetric(k, j+1, is, ie, g, gi);
+  pcoord->CellMetric(k, j, is, ie, g, gi);
+  Real g00 = g(I00,i);
+  Real g22 = g(I22,i);
+  pcoord->CellMetric(k, j-1, is, ie, g, gi);
 
-  // Real g00p1 = g(I00,i);
-  // Real g22p1 = g(I22,i);
+  Real g00p1 = g(I00,i);
+  Real g22p1 = g(I22,i);
 
-  // pcoord->CellMetric(k, j+2, is, ie, g, gi);
+  pcoord->CellMetric(k, j-2, is, ie, g, gi);
 
-  // Real g00p2 = g(I00,i);
-  // Real g22p2 = g(I22,i);
+  Real g00p2 = g(I00,i);
+  Real g22p2 = g(I22,i);
 
-  // if (pcoord->x2v(j)>0) fprintf(stderr,"x y z: %g %g %g \n i j k %d %d %d \n rho: %g %g %g \n v2: %g %g %g \n Bcc2: %g %g %g \n g00: %g %g %g \n g22: %g %g %g \n",
-  //   pcoord->x1v(i),pcoord->x2v(j),pcoord->x3v(k), i,j,k,
-  //   phydro->w(IDN,k,j,i),phydro->w(IDN,k,j+1,i),phydro->w(IDN,k,j+2,i),
-  //   phydro->w(IVY,k,j,i),phydro->w(IVY,k,j+1,i),phydro->w(IVY,k,j+2,i),
-  //   pfield->bcc(IB2,k,j,i),pfield->bcc(IB2,k,j+1,i),pfield->bcc(IB2,k,j+2,i),
-  //   g00,g00p1,g00p2,
-  //   g22,g22p1,g22p2 );
+  if (pcoord->x2v(j)>0) fprintf(stderr,"x y z: %g %g %g \n i j k %d %d %d \n rho: %g %g %g \n v2: %g %g %g \n Bcc2: %g %g %g \n g00: %g %g %g \n g22: %g %g %g \n",
+    pcoord->x1v(i),pcoord->x2v(j),pcoord->x3v(k), i,j,k,
+    phydro->w(IDN,k,j,i),phydro->w(IDN,k,j-1,i),phydro->w(IDN,k,j-2,i),
+    phydro->w(IVY,k,j,i),phydro->w(IVY,k,j-1,i),phydro->w(IVY,k,j-2,i),
+    pfield->bcc(IB2,k,j,i),pfield->bcc(IB2,k,j-1,i),pfield->bcc(IB2,k,j-2,i),
+    g00,g00p1,g00p2,
+    g22,g22p1,g22p2 );
   return;
 }
 
