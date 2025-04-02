@@ -326,9 +326,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
   Real kx = 2.0*(PI)/(pmy_mesh->mesh_size.x1max - pmy_mesh->mesh_size.x1min);
   Real ky = 2.0*(PI)/(pmy_mesh->mesh_size.x2max - pmy_mesh->mesh_size.x2min);
   Real kz = 2.0*(PI)/(pmy_mesh->mesh_size.x3max - pmy_mesh->mesh_size.x3min);
-  
-  Real v2;
-  
+    
   
   // Read perturbation amplitude, problem switch, density ratio
   Real amp = pin->GetReal("problem","amp");
@@ -407,21 +405,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           //P0 * (B^(A/C) = press_over_rho_interface*d
           //P0  = press_over_rho_interface*d
 
-
-          Real rand_number;
-          if (iprob == 1) {
-            v2 = (1.0 + std::cos(kx*pcoord->x1v(i)))*
-                                   (1.0 + std::cos(ky*pcoord->x2v(j)))/4.0;
-          } else {
-            rand_number  = ran2(&iseed);
-           v2 = (rand_number - 0.5)*(1.0+std::cos(ky*pcoord->x2v(j)));
-          }
-
-          // fprintf(stderr,"v2: %g rand_number: %g ky: %g y: %g\n",v2, rand_number,ky,pcoord->x2v(j));
-
-        
-          v2 *= amp*cs;
-
+          Real v2 = 0;
           Real v1 = 0.0;
           if (pcoord->x2v(j) > 0.0) v1 = shear_velocity;
           Real v3 = 0;
@@ -969,16 +953,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           }
 
 
-          Real v3;
+          Real v3=0.0;
 
-          if (iprob == 1) {
-            v3 = (1.0 + std::cos(kx*(pcoord->x1v(i))))/8.0
-                                   *(1.0 + std::cos(ky*pcoord->x2v(j)))
-                                   *(1.0 + std::cos(kz*pcoord->x3v(k)));
-          } else {
-            v3 = (ran2(&iseed) - 0.5)*(
-                1.0 + std::cos(kz*pcoord->x3v(k)));
-          }
 
           phydro->w(IDN,k,j,i) = den;
 
@@ -987,7 +963,6 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           if (pcoord->x3v(k) > 0.0) v1 = shear_velocity;
 
           Real v2 = 0;
-          v3 *= (amp*cs);
 
 
           Real u0 = std::sqrt( -1 / ( g(I00,i) + g(I11,i)*SQR(v1) + g(I22,i)*SQR(v2) + g(I33,i)*SQR(v3) + 
@@ -1427,6 +1402,78 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       }
     }
   } // end of 3D initialization
+
+
+
+    for (int k=kl; k<=ku; k++) {
+      for (int j=jl; j<=ju; j++) {
+        pcoord->CellMetric(k, j, il, iu, g, gi);
+        for (int i=il; i<=iu; i++) {
+
+                        // Calculate normal-frame Lorentz factor
+            Real uu1 = phydro->w(IVX,k,j,i);
+            Real uu2 = phydro->w(IVY,k,j,i);
+            Real uu3 = phydro->w(IVZ,k,j,i);
+            Real tmp = g(I11,i) * SQR(uu1) + 2.0 * g(I12,i) * uu1 * uu2
+                + 2.0 * g(I13,i) * uu1 * uu3 + g(I22,i) * SQR(uu2)
+                + 2.0 * g(I23,i) * uu2 * uu3 + g(I33,i) * SQR(uu3);
+            Real gamma = std::sqrt(1.0 + tmp);
+
+            // Calculate 4-velocity
+            Real alpha = std::sqrt(-1.0 / gi(I00,i));
+            Real u0 = gamma / alpha;
+            Real u1 = uu1 - alpha * gamma * gi(I01,i);
+            Real u2 = uu2 - alpha * gamma * gi(I02,i);
+            Real u3 = uu3 - alpha * gamma * gi(I03,i);
+
+            Real v1 = u1/u0;
+            Real v2 = u2/u0;
+            Real v3 = u3/u0;
+
+            Real rand_number;
+
+            if (block_size.nx3 == 1) { //2D
+                if (iprob == 1) {
+                  v2 += amp*cs*(1.0 + std::cos(kx*pcoord->x1v(i)))*
+                                         (1.0 + std::cos(ky*pcoord->x2v(j)))/4.0;
+                } else {
+                  rand_number  = ran2(&iseed);
+                 v2 += amp*cs* (rand_number - 0.5)*(1.0+std::cos(ky*pcoord->x2v(j)));
+                }
+            }
+
+            else{  //3D
+              if (iprob == 1) {
+                v3 += amp*cs*(1.0 + std::cos(kx*(pcoord->x1v(i))))/8.0
+                                       *(1.0 + std::cos(ky*pcoord->x2v(j)))
+                                       *(1.0 + std::cos(kz*pcoord->x3v(k)));
+              } else {
+                v3 += amp*cs*(ran2(&iseed) - 0.5)*(
+                    1.0 + std::cos(kz*pcoord->x3v(k)));
+              }
+            }
+      
+            u0 = std::sqrt( -1 / ( g(I00,i) + g(I11,i)*SQR(v1) + g(I22,i)*SQR(v2) + g(I33,i)*SQR(v3) + 
+                                        2.0*g(I01,i)*v1 + 2.0*g(I02,i)*v2 + 2.0*g(I03,i)*v3  )   ); 
+            u1 = u0*v1;
+            u2 = u0*v2;
+            u3 = u0*v3;
+
+            // Now convert to Athena++ velocities (see White+ 2016)
+            Real uu1 = u1 - gi(I01,i) / gi(I00,i) * u0;
+            Real uu2 = u2 - gi(I02,i) / gi(I00,i) * u0;
+            Real uu3 = u3 - gi(I03,i) / gi(I00,i) * u0;
+
+            phydro->w(IM1,k,j,i) = uu1;
+            phydro->w(IM2,k,j,i) = uu2;
+            phydro->w(IM3,k,j,i) = uu3;
+
+
+          }
+        }
+      }
+
+
 // Calculate cell-centered magnetic field
   AthenaArray<Real> bb;
   if (MAGNETIC_FIELDS_ENABLED) {
