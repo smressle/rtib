@@ -707,7 +707,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           }
         }
       }
-      for (int k=ks; k<=ke+1; k++) {
+      for (int k=ks; k<=ke; k++) {
         for (int j=js; j<=je; j++) {
           pcoord->Face3Metric(k, j, il, iu, g, gi);
           for (int i=is; i<=ie; i++) {
@@ -900,6 +900,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
             // pfield->b.x3f(k,j,i) = b3 * u0 - b0 * u3;
             pfield->b.x3f(k,j,i) = Bz;
+            pfield->b.x3f(k+1,j,i) = Bz;
 
 
             // if (std::isnan(pfield->b.x3f(k,j,i))){
