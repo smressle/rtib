@@ -60,6 +60,8 @@ void ProjectPressureInnerX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
 void ProjectPressureOuterX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> &prim,
                             FaceField &b, Real time, Real dt,
                             int il, int iu, int jl, int ju, int kl, int ku, int ngh);
+
+Real DivergenceB(MeshBlock *pmb, int iout);
 Real vsq(MeshBlock *pmb, int iout);
 // Real cs;
 
@@ -101,8 +103,9 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
     EnrollUserBoundaryFunction(BoundaryFace::inner_x3, ProjectPressureInnerX3);
     EnrollUserBoundaryFunction(BoundaryFace::outer_x3, ProjectPressureOuterX3);
   }
-    AllocateUserHistoryOutput(1);
+    AllocateUserHistoryOutput(2);
     EnrollUserHistoryOutput(0,vsq,"vsq");  
+    EnrollUserHistoryOutput(1,DivergenceB,"divb");
 
 
     if (mesh_size.nx3>1) EnrollUserMetric(linear_metric_3D);
@@ -173,37 +176,78 @@ Real Phi_func(Real z, Real gravitational_acceleration,Real z0 ){
   return -gravitational_acceleration * (z-z0);
 }
 
+
+/* Store some useful variables like mdot and vr */
+
+Real DivergenceB(MeshBlock *pmb, int iout)
+{
+  Real divb=0;
+  int is=pmb->is, ie=pmb->ie, js=pmb->js, je=pmb->je, ks=pmb->ks, ke=pmb->ke;
+  AthenaArray<Real> face1, face2p, face2m, face3p, face3m;
+  FaceField &b = pmb->pfield->b;
+
+  face1.NewAthenaArray((ie-is)+2*NGHOST+2);
+  face2p.NewAthenaArray((ie-is)+2*NGHOST+1);
+  face2m.NewAthenaArray((ie-is)+2*NGHOST+1);
+  face3p.NewAthenaArray((ie-is)+2*NGHOST+1);
+  face3m.NewAthenaArray((ie-is)+2*NGHOST+1);
+
+  for(int k=ks; k<=ke; k++) {
+    for(int j=js; j<=je; j++) {
+      pmb->pcoord->Face1Area(k,   j,   is, ie+1, face1);
+      pmb->pcoord->Face2Area(k,   j+1, is, ie,   face2p);
+      pmb->pcoord->Face2Area(k,   j,   is, ie,   face2m);
+      pmb->pcoord->Face3Area(k+1, j,   is, ie,   face3p);
+      pmb->pcoord->Face3Area(k,   j,   is, ie,   face3m);
+      for(int i=is; i<=ie; i++) {
+        divb+=(face1(i+1)*b.x1f(k,j,i+1)-face1(i)*b.x1f(k,j,i)
+              +face2p(i)*b.x2f(k,j+1,i)-face2m(i)*b.x2f(k,j,i)
+              +face3p(i)*b.x3f(k+1,j,i)-face3m(i)*b.x3f(k,j,i));
+      }
+    }
+  }
+
+  face1.DeleteAthenaArray();
+  face2p.DeleteAthenaArray();
+  face2m.DeleteAthenaArray();
+  face3p.DeleteAthenaArray();
+  face3m.DeleteAthenaArray();
+
+  return divb;
+}
+
+
 void MeshBlock::UserWorkInLoop() {
 
 
-  AthenaArray<Real> &g = ruser_meshblock_data[0];
-  AthenaArray<Real> &gi = ruser_meshblock_data[1];
+  // AthenaArray<Real> &g = ruser_meshblock_data[0];
+  // AthenaArray<Real> &gi = ruser_meshblock_data[1];
 
 
-  int k = ks;
-  int j = js;
-  int i = is + 4;
+  // int k = ks;
+  // int j = js;
+  // int i = is + 4;
 
-  pcoord->CellMetric(k, j, is, ie, g, gi);
-  Real g00 = g(I00,i);
-  Real g22 = g(I22,i);
-  pcoord->CellMetric(k, j-1, is, ie, g, gi);
+  // pcoord->CellMetric(k, j, is, ie, g, gi);
+  // Real g00 = g(I00,i);
+  // Real g22 = g(I22,i);
+  // pcoord->CellMetric(k, j-1, is, ie, g, gi);
 
-  Real g00p1 = g(I00,i);
-  Real g22p1 = g(I22,i);
+  // Real g00p1 = g(I00,i);
+  // Real g22p1 = g(I22,i);
 
-  pcoord->CellMetric(k, j-2, is, ie, g, gi);
+  // pcoord->CellMetric(k, j-2, is, ie, g, gi);
 
-  Real g00p2 = g(I00,i);
-  Real g22p2 = g(I22,i);
+  // Real g00p2 = g(I00,i);
+  // Real g22p2 = g(I22,i);
 
-  if (pcoord->x2v(j)>0) fprintf(stderr,"x y z: %g %g %g \n i j k %d %d %d \n rho: %g %g %g \n v2: %g %g %g \n Bcc2: %g %g %g \n g00: %g %g %g \n g22: %g %g %g \n",
-    pcoord->x1v(i),pcoord->x2v(j),pcoord->x3v(k), i,j,k,
-    phydro->w(IDN,k,j,i),phydro->w(IDN,k,j-1,i),phydro->w(IDN,k,j-2,i),
-    phydro->w(IVY,k,j,i),phydro->w(IVY,k,j-1,i),phydro->w(IVY,k,j-2,i),
-    pfield->bcc(IB2,k,j,i),pfield->bcc(IB2,k,j-1,i),pfield->bcc(IB2,k,j-2,i),
-    g00,g00p1,g00p2,
-    g22,g22p1,g22p2 );
+  // if (pcoord->x2v(j)>0) fprintf(stderr,"x y z: %g %g %g \n i j k %d %d %d \n rho: %g %g %g \n v2: %g %g %g \n Bcc2: %g %g %g \n g00: %g %g %g \n g22: %g %g %g \n",
+  //   pcoord->x1v(i),pcoord->x2v(j),pcoord->x3v(k), i,j,k,
+  //   phydro->w(IDN,k,j,i),phydro->w(IDN,k,j-1,i),phydro->w(IDN,k,j-2,i),
+  //   phydro->w(IVY,k,j,i),phydro->w(IVY,k,j-1,i),phydro->w(IVY,k,j-2,i),
+  //   pfield->bcc(IB2,k,j,i),pfield->bcc(IB2,k,j-1,i),pfield->bcc(IB2,k,j-2,i),
+  //   g00,g00p1,g00p2,
+  //   g22,g22p1,g22p2 );
   return;
 }
 
