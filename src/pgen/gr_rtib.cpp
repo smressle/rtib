@@ -113,7 +113,7 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
     Real effective_keplerian_velocity = std::sqrt(1/effective_graviational_radius);
     shear_velocity = f_kep_shear * effective_keplerian_velocity;
 
-    
+
     AllocateUserHistoryOutput(2);
     EnrollUserHistoryOutput(0,vsq,"vsq");  
     EnrollUserHistoryOutput(1,DivergenceB,"divb");
@@ -183,7 +183,9 @@ Real vsq(MeshBlock *pmb, int iout)
         else{
           if (pmb->pcoord->x3v(k)>0) v_shear = shear_velocity;
         }
-        vsq+= SQR( v1 -v_shear) + SQR( v2 ) + SQR( v3 );
+        // vsq+= SQR( v1 -v_shear) + SQR( v2 ) + SQR( v3 );
+
+        vsq+= SQR(v2) + SQR(v3);
       }
     }
   }
