@@ -82,6 +82,134 @@ Real grav_acc,shear_velocity;
 
 int RefinementCondition(MeshBlock *pmb);
 
+
+void Pressure_ODE_2D_top(double t, const double y, ParameterInput *pin, MeshBlock *pmb, double dydt) {
+
+      grav_acc = pin->GetReal("problem", "grav_acc");
+      Real y0 = pin->GetReal("problem", "y0");
+      Real Phi_N = -grav_acc * (t-y0);
+      Real gamma_adi = pmb->pos->GetGamma();
+
+      Real g_00 = -(1.0 + 2.0*Phi_N)
+      Real g_11 = 1.0
+      Real g_22 = 1.0 - 2.0*Phi_N
+      Real g_02 = -2.0*Phi_N 
+      Real g_20 = g_02
+      Real g_33 = 1.0
+
+      Real v_x = v_shear/2.0;
+      Real v_y = 0.0.
+      Real v_y = 0.0;
+
+
+      Real uu_t = np.sqrt( -1 / ( g_00 + g_11*SQR(v_x) + g_22*SQR(v_y) + g_33*SQR(v_z) + 
+                                2.0*g_02*v_y )   )
+      Real uu_x = uu_t*v_x
+      Real uu_y = uu_t*v_y
+      Real uu_z = uu_t*v_z
+
+      Real theta_rot = pin->GetReal("problem","theta_rot");
+      theta_rot = (theta_rot/180.)*PI;
+
+      Real L;
+      if (pmb->block_size.nx3==1) L = pmb->pmy_mesh->mesh_size.x2max - pmb->pmy_mesh->mesh_size.x2min;
+      else L = pmb->pmy_mesh->mesh_size.x3max - pmb->pmy_mesh->mesh_size.x3min;
+      Real length_of_rotation_region = pin->GetOrAddReal("problem","length_of_rotation_region",L/10.0);
+
+
+      Real rotation_region_y_min = (L/2.0 - length_of_rotation_region/2.0) +  pmy_mesh->mesh_size.x2min;
+      Real rotation_region_y_max = rotation_region_y_min + length_of_rotation_region;
+
+      Real Bin = ( Bh * Bc * std::sin(theta_rot) ) / std::sqrt( SQR(Bh) + SQR(Bc) + 2.0*Bh*Bc*std::cos(theta_rot) ) ;
+      Real Bhx = Bin;
+      Real Bcx = - Bhx;
+
+
+      Real sign_flip = 1.0;
+      if (std::cos(theta_rot)<0.0) sign_flip=-1.0;
+      Real Bhz = sign_flip * std::sqrt( SQR(Bh) - SQR(Bin) );
+      Real Bcz =             std::sqrt( SQR(Bc) - SQR(Bin) );
+
+
+      Real angle_with_x_h = std::arctan2(Bhz,Bhx);
+      Real angle_with_x_c = std::arctan2(Bcz,Bzx);
+
+
+      Real w = (y - rotation_region_ymin) / (rotation_region_ymax - rotation_region_ymin);
+      if (w>1) w = 1.0;
+      if (w<0) w = 0.0;
+      // Real theta_y = (1.0 - w) * angle_with_x_h + w * angle_with_x_c;
+
+      Real delta_theta = angle_with_x_c - angle_with_x_h;
+      // Wrap to [-π, π]
+      if (delta_theta > PI) delta_theta -= 2.0 * PI;
+      if (delta_theta < -PI) delta_theta += 2.0 * PI;
+      Real theta_y = angle_with_x_h + w * delta_theta;
+
+      Real Bx_over_fake_B = std::cos(theta_y);
+      Real By_over_fake_B = 0.0;
+      Real Bz_over_fake_B = std::sin(theta_y);
+
+
+      By_over_Bx = 0
+      Bz_over_Bx = 0
+
+      b0_over_Bx = g_11 * uu_x + g_22 * By_over_Bx * uu_y  + g_02 * By_over_Bx * uu_t
+      Real bu_over_Bx[4];
+
+      bu_over_Bx[0] = b0_over_Bx;
+      bu_over_Bx[1] = (1.0 + b0_over_Bx * uu_x)/uu_t;
+      bu_over_Bx[2] = (By_over_Bx + b0_over_Bx * uu_y)/uu_t;
+      bu_over_Bx[3] = (Bz_over_Bx + b0_over_Bx * uu_z)/uu_t;
+
+      bsq_over_Bx_sq = bu_over_Bx[0]*bu_over_Bx[0]*g_00 + bu_over_Bx[1]*bu_over_Bx[1]*g_11 + bu_over_Bx[2]*bu_over_Bx[2] *g_22  + bu_over_Bx[0]*bu_over_Bx[2] *g_02 + bu_over_Bx[2]*bu_over_Bx[0] *g_20 + bu_over_Bx[3]*bu_over_Bx[3]*g_33
+
+      numerator = g_N
+      denominator = (1 + 2 * Phi_N - v_x**2)
+      prefactor = numerator / denominator
+      bracket = (
+          2 / sigma +
+          (gam * beta) / (gam - 1) +
+          2  - 
+          2 * (1.0/bsq_over_Bx_sq) * (v_x**2)
+      )
+      return (P / (beta + 1)) * prefactor * bracket
+    dydt = -y;
+}
+
+// Runge-Kutta 4th order ODE solver \
+void rungeKutta4_one_step(
+    void (*f)(double t, const double y, ParameterInput *pin, MeshBlock *pmb,double dydt),
+    double y,
+    double t0,
+    double t1,
+    double dt,
+    ParameterInput *pin,
+    MeshBlock *pmb
+) {
+    double t = t0;
+    double k1, k2, k3, k4, yTemp;
+
+    while (t < t1) {
+        f(t, y, pin, pmb, k1);
+
+        yTemp = y + dt * k1 / 2.0;
+        f(t + dt / 2.0, yTemp, pin, pmb, k2);
+
+        yTemp = y + dt * k2 / 2.0;
+        f(t + dt / 2.0, yTemp, pin, pmb, k3);
+
+        yTemp[i] = y + dt * k3;
+        f(t + dt, yTemp, pin, pmb, k4);
+
+        // Update y
+        y += dt / 6.0 * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
+
+        t += dt;
+
+    }
+}
+
 //========================================================================================
 //! \fn void Mesh::InitUserMeshData(ParameterInput *pin)
 //  \brief Function to initialize problem-specific data in mesh class.  Can also be used
@@ -2234,3 +2362,6 @@ void linear_metric_2D(Real x1, Real x2, Real x3, ParameterInput *pin,
 
   return;
 }
+
+
+
