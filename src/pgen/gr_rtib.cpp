@@ -815,7 +815,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
     AthenaArray<Real> P_sol;
     P_sol.NewAthenaArray(ju-jl+1);
-    integrate_P_ODE(il,iu,jl,ju,kl,ku,pcoord->x2v,pmb,pin,P_sol );
+    integrate_P_ODE(il,iu,jl,ju,kl,ku,pcoord->x2v,this,pin,P_sol );
     for (int k=kl; k<=ku; k++) {
       for (int j=jl; j<=ju; j++) {
         pcoord->CellMetric(k, j, il, iu, g, gi);
@@ -1362,7 +1362,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
     AthenaArray<Real> P_sol;
     P_sol.NewAthenaArray(ku-kl+1);
-    integrate_P_ODE(il,iu,jl,ju,kl,ku,pcoord->x3v,pmb,pin,P_sol );
+    integrate_P_ODE(il,iu,jl,ju,kl,ku,pcoord->x3v,this,pin,P_sol );
     for (int k=kl; k<=ku; k++) {
       for (int j=jl; j<=ju; j++) {
         pcoord->CellMetric(k, j, il, iu, g, gi);
