@@ -481,8 +481,8 @@ void integrate_P_ODE(MeshBlock *pmb,ParameterInput *pin,AthenaArray<Real> P_sol 
        }
 
        // now lower
-       Real dt_runge_kutta = (pmb->pcoord->x2v(j_trans-1) - 0.0)/(pmb->pmy_mesh->mesh_size.nx2*10.0);
-       Real P_result = P_c;
+       dt_runge_kutta = (pmb->pcoord->x2v(j_trans-1) - 0.0)/(pmb->pmy_mesh->mesh_size.nx2*10.0);
+       P_result = P_c;
        rungeKutta4(Pressure_ODE_2D,P_result, 0.0, pmb->pcoord->x2v(ju),  dt_runge_kutta, false,pin,pmb); 
        P_sol(j_trans-1) = P_result;
 
@@ -565,16 +565,16 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
 
     Bc = Bh / std::sqrt(1.0 + (1.0 - 1.0/drat)*beta_c);
 
-    if (mesh_size.nx3==1) L = pmy_mesh->mesh_size.x2max - pmy_mesh->mesh_size.x2min;
-    else L = pmy_mesh->mesh_size.x3max - pmy_mesh->mesh_size.x3min;
+    if (mesh_size.nx3==1) L = mesh_size.x2max - mesh_size.x2min;
+    else L = mesh_size.x3max - mesh_size.x3min;
     length_of_rotation_region = pin->GetOrAddReal("problem","length_of_rotation_region",L/10.0);
 
     if (mesh_size.nx3==1) {
-      rotation_region_min = (L/2.0 - length_of_rotation_region/2.0) +  pmy_mesh->mesh_size.x2min;
+      rotation_region_min = (L/2.0 - length_of_rotation_region/2.0) +  mesh_size.x2min;
       rotation_region_max = rotation_region_min + length_of_rotation_region;
     }
     else{
-      rotation_region_min = (L/2.0 - length_of_rotation_region/2.0) +  pmy_mesh->mesh_size.x3min;
+      rotation_region_min = (L/2.0 - length_of_rotation_region/2.0) +  mesh_size.x3min;
       rotation_region_max = rotation_region_min + length_of_rotation_region;
     }
 
@@ -822,7 +822,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 // Bc^2 / rho_c = sigma_h * (1 + (1-1/drat)*beta_c)/drat
 
 
-
+  Real cs = std::sqrt(press_over_rho_interface * gamma_adi / (1.0 + gamma_adi/(gm1) *press_over_rho_interface) );
 
   // 2D PROBLEM ---------------------------------------------------------------
 
