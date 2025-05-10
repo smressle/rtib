@@ -130,7 +130,7 @@ Real GetBAngle(const Real x){
       return  angle_with_x_h + w * delta_theta;
 }
 
-void Pressure_ODE_2D(Real t, const Real y, bool is_top,ParameterInput *pin, MeshBlock *pmb, Real *dydt) {
+void Pressure_ODE_2D(Real t, Real y, bool is_top,ParameterInput *pin, MeshBlock *pmb, Real *dydt) {
 
       Real P = y;
       Real y0 = pin->GetReal("problem", "y0");
