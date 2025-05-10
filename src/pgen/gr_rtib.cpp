@@ -276,7 +276,7 @@ void Pressure_ODE_3D(Real t, Real y, bool is_top,ParameterInput *pin, MeshBlock 
       *dydt =  (P / (beta + 1)) * prefactor * bracket;
 }
 
-// Runge-Kutta 4th order ODE solver \
+// Runge-Kutta 4th order ODE solver 
 void rungeKutta4(
     void (*f)(Real t, Real y, bool is_top, ParameterInput *pin, MeshBlock *pmb,Real *dydt),
     Real *y,
