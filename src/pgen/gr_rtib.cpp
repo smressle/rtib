@@ -74,8 +74,8 @@ void linear_metric_3D(Real x1, Real x2, Real x3, ParameterInput *pin,
 
 Real Phi_func(Real z, Real gravitational_acceleration,Real z0 );
 void rungeKutta4(
-    void (*f)(Real t, Real y, bool is_top, ParameterInput *pin, MeshBlock *pmb,Real dydt),
-    Real y,
+    void (*f)(Real t, Real y, bool is_top, ParameterInput *pin, MeshBlock *pmb,Real *dydt),
+    Real *y,
     Real t0,
     Real t1,
     Real dt,
@@ -278,7 +278,7 @@ void Pressure_ODE_3D(Real t, Real y, bool is_top,ParameterInput *pin, MeshBlock 
 
 // Runge-Kutta 4th order ODE solver \
 void rungeKutta4(
-    void (*f)(Real t, Real y_, bool is_top, ParameterInput *pin, MeshBlock *pmb,Real *dydt),
+    void (*f)(Real t, Real y, bool is_top, ParameterInput *pin, MeshBlock *pmb,Real *dydt),
     Real *y,
     Real t0,
     Real t1,
