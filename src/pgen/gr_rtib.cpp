@@ -310,7 +310,7 @@ void rungeKutta4(
     }
 }
 
-void integrate_P_ODE(MeshBlock *pmb,ParameterInput *pin,AthenaArray<Real> P_sol ){
+void integrate_P_ODE(MeshBlock *pmb,ParameterInput *pin,AthenaArray<Real> &P_sol ){
 
   // Prepare index bounds
   int il = pmb->is - NGHOST;
@@ -361,7 +361,7 @@ void integrate_P_ODE(MeshBlock *pmb,ParameterInput *pin,AthenaArray<Real> P_sol 
        P_sol(ku) = P_result;
 
 
-        for (int k=ku-1; k<=kl; k--) {
+        for (int k=ku-1; k>=kl; k--) {
          dt_runge_kutta = (pmb->pcoord->x3v(k)-pmb->pcoord->x3v(k+1))/(10.0);
          P_result = P_sol(k+1);
          rungeKutta4(Pressure_ODE_3D, &P_result, pmb->pcoord->x3v(k+1),pmb->pcoord->x3v(k), dt_runge_kutta, false, pin,pmb); 
@@ -392,7 +392,7 @@ void integrate_P_ODE(MeshBlock *pmb,ParameterInput *pin,AthenaArray<Real> P_sol 
        for (int k=k_trans+1; k<=ku; k++) {
          dt_runge_kutta = (pmb->pcoord->x3v(k)-pmb->pcoord->x3v(k-1))/(10.0);
          P_result = P_sol(k-1);
-         rungeKutta4(Pressure_ODE_3D, &P_result, pmb->pcoord->x2v(k-1),pmb->pcoord->x3v(k), dt_runge_kutta, true, pin,pmb); 
+         rungeKutta4(Pressure_ODE_3D, &P_result, pmb->pcoord->x3v(k-1),pmb->pcoord->x3v(k), dt_runge_kutta, true, pin,pmb); 
          P_sol(k) = P_result;
 
        }
@@ -404,7 +404,7 @@ void integrate_P_ODE(MeshBlock *pmb,ParameterInput *pin,AthenaArray<Real> P_sol 
        P_sol(k_trans-1) = P_result;
 
 
-        for (int k=k_trans-2; k<=kl; k--) {
+        for (int k=k_trans-2; k>=kl; k--) {
          dt_runge_kutta = (pmb->pcoord->x3v(k)-pmb->pcoord->x3v(k+1))/(10.0);
          P_result = P_sol(k+1);
          rungeKutta4(Pressure_ODE_3D, &P_result, pmb->pcoord->x3v(k+1),pmb->pcoord->x3v(k), dt_runge_kutta, false, pin,pmb); 
@@ -444,7 +444,7 @@ void integrate_P_ODE(MeshBlock *pmb,ParameterInput *pin,AthenaArray<Real> P_sol 
        P_sol(ju) = P_result;
 
 
-        for (int j=ju-1; j<=jl; j--) {
+        for (int j=ju-1; j>=jl; j--) {
          dt_runge_kutta = (pmb->pcoord->x2v(j)-pmb->pcoord->x2v(j+1))/(10.0);
          P_result = P_sol(j+1);
          rungeKutta4(Pressure_ODE_2D, &P_result, pmb->pcoord->x2v(j+1),pmb->pcoord->x2v(j), dt_runge_kutta, false, pin,pmb); 
@@ -487,7 +487,7 @@ void integrate_P_ODE(MeshBlock *pmb,ParameterInput *pin,AthenaArray<Real> P_sol 
        P_sol(j_trans-1) = P_result;
 
 
-        for (int j=j_trans-2; j<=jl; j--) {
+        for (int j=j_trans-2; j>=jl; j--) {
          dt_runge_kutta = (pmb->pcoord->x2v(j)-pmb->pcoord->x2v(j+1))/(10.0);
          P_result = P_sol(j+1);
          rungeKutta4(Pressure_ODE_2D, &P_result, pmb->pcoord->x2v(j+1),pmb->pcoord->x2v(j), dt_runge_kutta, false, pin,pmb); 
