@@ -78,47 +78,17 @@ Real Phi_func(Real z, Real gravitational_acceleration,Real z0 );
 namespace {
 // made global to share with BC functions
 Real grav_acc,shear_velocity;
+Real beta_c, sigma_c,press_over_rho_interface, sigma_h,beta_h;
+Real rho_h,rho_c, Bh,Bc,drat;
+Real P_h, P_c;
+Real L, length_of_rotation_region;
+Real theta_rot;
 } // namespace
 
 int RefinementCondition(MeshBlock *pmb);
 
 
-void Pressure_ODE_2D_top(double t, const double y, ParameterInput *pin, MeshBlock *pmb, double dydt) {
-
-      grav_acc = pin->GetReal("problem", "grav_acc");
-      Real y0 = pin->GetReal("problem", "y0");
-      Real Phi_N = -grav_acc * (t-y0);
-      Real gamma_adi = pmb->pos->GetGamma();
-
-      Real g_00 = -(1.0 + 2.0*Phi_N)
-      Real g_11 = 1.0
-      Real g_22 = 1.0 - 2.0*Phi_N
-      Real g_02 = -2.0*Phi_N 
-      Real g_20 = g_02
-      Real g_33 = 1.0
-
-      Real v_x = v_shear/2.0;
-      Real v_y = 0.0.
-      Real v_y = 0.0;
-
-
-      Real uu_t = np.sqrt( -1 / ( g_00 + g_11*SQR(v_x) + g_22*SQR(v_y) + g_33*SQR(v_z) + 
-                                2.0*g_02*v_y )   )
-      Real uu_x = uu_t*v_x
-      Real uu_y = uu_t*v_y
-      Real uu_z = uu_t*v_z
-
-      Real theta_rot = pin->GetReal("problem","theta_rot");
-      theta_rot = (theta_rot/180.)*PI;
-
-      Real L;
-      if (pmb->block_size.nx3==1) L = pmb->pmy_mesh->mesh_size.x2max - pmb->pmy_mesh->mesh_size.x2min;
-      else L = pmb->pmy_mesh->mesh_size.x3max - pmb->pmy_mesh->mesh_size.x3min;
-      Real length_of_rotation_region = pin->GetOrAddReal("problem","length_of_rotation_region",L/10.0);
-
-
-      Real rotation_region_y_min = (L/2.0 - length_of_rotation_region/2.0) +  pmy_mesh->mesh_size.x2min;
-      Real rotation_region_y_max = rotation_region_y_min + length_of_rotation_region;
+Real GetBAngle(const Real x){
 
       Real Bin = ( Bh * Bc * std::sin(theta_rot) ) / std::sqrt( SQR(Bh) + SQR(Bc) + 2.0*Bh*Bc*std::cos(theta_rot) ) ;
       Real Bhx = Bin;
@@ -144,41 +114,73 @@ void Pressure_ODE_2D_top(double t, const double y, ParameterInput *pin, MeshBloc
       // Wrap to [-π, π]
       if (delta_theta > PI) delta_theta -= 2.0 * PI;
       if (delta_theta < -PI) delta_theta += 2.0 * PI;
-      Real theta_y = angle_with_x_h + w * delta_theta;
+
+
+      return  angle_with_x_h + w * delta_theta;
+}
+
+void Pressure_ODE_2D_top(Real t, const Real y, ParameterInput *pin, MeshBlock *pmb, Real dydt) {
+
+
+      Real P = y;
+      Real y0 = pin->GetReal("problem", "y0");
+      Real Phi_N = -grav_acc * (t-y0);
+      Real gamma_adi = pmb->pos->GetGamma();
+
+
+
+      Real g_00 = -(1.0 + 2.0*Phi_N)
+      Real g_11 = 1.0
+      Real g_22 = 1.0 - 2.0*Phi_N
+      Real g_02 = -2.0*Phi_N 
+      Real g_20 = g_02
+      Real g_33 = 1.0
+
+      Real v_x = v_shear/2.0;
+      Real v_y = 0.0.
+      Real v_y = 0.0;
+
+
+      Real uu_t = np.sqrt( -1 / ( g_00 + g_11*SQR(v_x) + g_22*SQR(v_y) + g_33*SQR(v_z) + 
+                                2.0*g_02*v_y )   )
+      Real uu_x = uu_t*v_x
+      Real uu_y = uu_t*v_y
+      Real uu_z = uu_t*v_z
+
+      Real theta_y = GetBAngle(t);
 
       Real Bx_over_fake_B = std::cos(theta_y);
       Real By_over_fake_B = 0.0;
       Real Bz_over_fake_B = std::sin(theta_y);
 
 
-      By_over_Bx = 0
-      Bz_over_Bx = 0
+      // By_over_Bx = 0
+      // Bz_over_Bx = 0
 
-      b0_over_Bx = g_11 * uu_x + g_22 * By_over_Bx * uu_y  + g_02 * By_over_Bx * uu_t
-      Real bu_over_Bx[4];
+      Real b0_over_fake_B = g_11 * uu_x * Bx_over_fake_B + g_22 * By_over_fake_B * uu_y  + g_02 * By_over_fake_B * uu_t ;
+      Real bu_over_fake_B[4];
 
-      bu_over_Bx[0] = b0_over_Bx;
-      bu_over_Bx[1] = (1.0 + b0_over_Bx * uu_x)/uu_t;
-      bu_over_Bx[2] = (By_over_Bx + b0_over_Bx * uu_y)/uu_t;
-      bu_over_Bx[3] = (Bz_over_Bx + b0_over_Bx * uu_z)/uu_t;
+      bu_over_fake_B[0] = b0_over_fake_B;
+      bu_over_fake_B[1] = (Bx_over_fake_B + b0_over_fake_B * uu_x)/uu_t;
+      bu_over_fake_B[2] = (By_over_fake_B + b0_over_fake_B * uu_y)/uu_t;
+      bu_over_fake_B[3] = (Bz_over_fake_B + b0_over_fake_B * uu_z)/uu_t;
 
-      bsq_over_Bx_sq = bu_over_Bx[0]*bu_over_Bx[0]*g_00 + bu_over_Bx[1]*bu_over_Bx[1]*g_11 + bu_over_Bx[2]*bu_over_Bx[2] *g_22  + bu_over_Bx[0]*bu_over_Bx[2] *g_02 + bu_over_Bx[2]*bu_over_Bx[0] *g_20 + bu_over_Bx[3]*bu_over_Bx[3]*g_33
+      Real bsq_over_fake_B_sq = bu_over_fake_B[0]*bu_over_fake_B[0]*g_00 + bu_over_fake_B[1]*bu_over_fake_B[1]*g_11 + bu_over_fake_B[2]*bu_over_fake_B[2] *g_22  + bu_over_fake_B[0]*bu_over_fake_B[2] *g_02 + bu_over_fake_B[2]*bu_over_fake_B[0] *g_20 + bu_over_fake_B[3]*bu_over_fake_B[3]*g_33 ;
 
-      numerator = g_N
-      denominator = (1 + 2 * Phi_N - v_x**2)
-      prefactor = numerator / denominator
-      bracket = (
-          2 / sigma +
-          (gam * beta) / (gam - 1) +
+      Real numerator = g_N;
+      Real denominator = (1.0 + 2.0 * Phi_N - SQR(v_x) );
+      Real prefactor = numerator / denominator;
+      Real bracket = (
+          2 / sigma_h +
+          (gamma_adi * beta_h) / (gamma_adi - 1) +
           2  - 
-          2 * (1.0/bsq_over_Bx_sq) * (v_x**2)
-      )
-      return (P / (beta + 1)) * prefactor * bracket
-    dydt = -y;
+          2 * (SQR(Bx_over_fake_B)/bsq_over_fake_B_sq) * ( SQR(v_x) )
+      );
+      dydt =  (P / (beta_h + 1)) * prefactor * bracket;
 }
 
 // Runge-Kutta 4th order ODE solver \
-void rungeKutta4_one_step(
+void rungeKutta4(
     void (*f)(double t, const double y, ParameterInput *pin, MeshBlock *pmb,double dydt),
     double y,
     double t0,
@@ -210,6 +212,119 @@ void rungeKutta4_one_step(
     }
 }
 
+void integrate_P_ODE(MeshBlock *pmb,ParameterInput *pin,AthenaArray<Real> P_sol ){
+
+  // Prepare index bounds
+  int il = pmb->is - NGHOST;
+  int iu = pmb->ie + NGHOST;
+  int jl = pmb->js;
+  int ju = pmb->je;
+  if (pmb->block_size.nx2 > 1) {
+    jl -= (NGHOST);
+    ju += (NGHOST);
+  }
+  int kl = pmb->ks;
+  int ku = pmb->ke;
+  if (pmb->block_size.nx3 > 1) {
+    kl -= (NGHOST);
+    ku += (NGHOST);
+  }
+
+
+
+ //Integrate the pressure eqation by starting at the interface and then integrated by roughly 10 times 
+ //smaller steps
+
+  if (pmb->block_size.nx3 > 1) {  //3D
+  }
+  else{ //2D
+
+    if (pmb->pcoord->x2v(jl) > 0.0){ //whole block is above y=0
+       //do first step
+       Real dt_runge_kutta = (pmb->pcoord->x2v(jl)-0.0)/(pmb->mesh_size.nx2*10.0);
+       Real P_result = P_h;
+       rungeKutta4(Pressure_ODE_2D_top,P_result, 0.0,pmb->pcoord->x2v(jl), dt_runge_kutta, pin,pmb); 
+       P_sol(jl) = P_result;
+
+       for (int j=jl+1; j<=ju; j++) {
+         dt_runge_kutta = (pmb->pcoord->x2v(j)-pmb->pcoord->x2v(j-1))/(pmb->mesh_size.nx2*10.0);
+         P_result = P_sol(j-1);
+         rungeKutta4(Pressure_ODE_2D_top, P_result, pmb->pcoord->x2v(j-1),pmb->pcoord->x2v(j), dt_runge_kutta, pin,pmb); 
+         P_sol(j) = P_result;
+
+       }
+
+    }
+
+    else if (pmb->pcoord->x2v(ju) < 0.0){ //whole block is below y=0
+
+      //do first step
+       Real dt_runge_kutta = (pmb->pcoord->x2v(ju) - 0.0)/(pmb->mesh_size.nx2*10.0);
+       Real P_result = P_c;
+       rungeKutta4(Pressure_ODE_2D_bottom,P_result, 0.0, pmb->pcoord->x2v(ju),  dt_runge_kutta, pin,pmb); 
+       P_sol(ju) = P_result;
+
+
+        for (int j=ju-1; j<=jl; j--) {
+         dt_runge_kutta = (pmb->pcoord->x2v(j)-pmb->pcoord->x2v(j+1))/(pmb->mesh_size.nx2*10.0);
+         P_result = P_sol(j+1);
+         rungeKutta4(Pressure_ODE_2D_bottom, P_result, pmb->pcoord->x2v(j+1),pmb->pcoord->x2v(j), dt_runge_kutta, pin,pmb); 
+         P_sol(j) = P_result;
+
+       }
+
+    }
+
+    else{ //mixed case
+
+      //first find index where transition happens
+      int j_trans = jl;
+      for (int j=jl; j<=ju; j++) {
+        if (pmb->pcoord->x2v(j) >0.0){
+          j_trans = j;
+          break;
+        }
+      }
+
+      //do upper first
+
+       Real dt_runge_kutta = (pmb->pcoord->x2v(j_trans)-0.0)/(pmb->mesh_size.nx2*10.0);
+       Real P_result = P_h;
+       rungeKutta4(Pressure_ODE_2D_top,P_result, 0.0,pmb->pcoord->x2v(j_trans), dt_runge_kutta, pin,pmb); 
+       P_sol(j_trans) = P_result;
+
+       for (int j=j_trans+1; j<=ju; j++) {
+         dt_runge_kutta = (pmb->pcoord->x2v(j)-pmb->pcoord->x2v(j-1))/(pmb->mesh_size.nx2*10.0);
+         P_result = P_sol(j-1);
+         rungeKutta4(Pressure_ODE_2D_top, P_result, pmb->pcoord->x2v(j-1),pmb->pcoord->x2v(j), dt_runge_kutta, pin,pmb); 
+         P_sol(j) = P_result;
+
+       }
+
+       // now lower
+       Real dt_runge_kutta = (pmb->pcoord->x2v(j_trans-1) - 0.0)/(pmb->mesh_size.nx2*10.0);
+       Real P_result = P_c;
+       rungeKutta4(Pressure_ODE_2D_bottom,P_result, 0.0, pmb->pcoord->x2v(ju),  dt_runge_kutta, pin,pmb); 
+       P_sol(j_trans-1) = P_result;
+
+
+        for (int j=j_trans-2; j<=jl; j--) {
+         dt_runge_kutta = (pmb->pcoord->x2v(j)-pmb->pcoord->x2v(j+1))/(pmb->mesh_size.nx2*10.0);
+         P_result = P_sol(j+1);
+         rungeKutta4(Pressure_ODE_2D_bottom, P_result, pmb->pcoord->x2v(j+1),pmb->pcoord->x2v(j), dt_runge_kutta, pin,pmb); 
+         P_sol(j) = P_result;
+
+       }
+
+
+
+  }
+
+
+
+
+}
+
 //========================================================================================
 //! \fn void Mesh::InitUserMeshData(ParameterInput *pin)
 //  \brief Function to initialize problem-specific data in mesh class.  Can also be used
@@ -236,10 +351,55 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
 
     grav_acc = pin->GetReal("problem", "grav_acc");
 
+    theta_rot = pin->GetReal("problem","theta_rot");
+    theta_rot = (theta_rot/180.)*PI;
+
     Real f_kep_shear = pin->GetOrAddReal("problem","f_kep_shear",0.0);
     Real effective_graviational_radius = std::sqrt(1.0/std::fabs(grav_acc));
     Real effective_keplerian_velocity = std::sqrt(1/effective_graviational_radius);
     shear_velocity = f_kep_shear * effective_keplerian_velocity;
+
+
+    beta_c = pin->GetOrAddReal("problem","beta_c",1.0);
+    sigma_c = pin->GetOrAddReal("problem","sigma_c",1.0);
+
+
+    press_over_rho_interface = beta_c * sigma_c /2.0;
+    sigma_h = pin->GetOrAddReal("problem","sigma_h",1.0);
+    beta_h = press_over_rho_interface/sigma_h * 2.0;
+
+
+    rho_h = 1.0;
+
+
+    Bh = std::sqrt(sigma_h * rho_h);
+
+    // sigma_h/sigma_c = Bh^2/Bc^2 * drat
+    // Bh^2/Bc^2 = 1 + (1 - 1/drat)*beta_c 
+    // sigma_h/sigma_c  = drat + (drat -1)*beta_c
+    drat = ( sigma_h/sigma_c+beta_c )/(1.0 + beta_c);
+
+    rho_c = rho_h * drat;
+
+
+    P_h = press_over_rho_interface * rho_h;
+    P_c = press_over_rho_interface * rho_c;
+
+    Bc = Bh / std::sqrt(1.0 + (1.0 - 1.0/drat)*beta_c);
+
+    if (mesh_size.nx3==1) L = pmy_mesh->mesh_size.x2max - pmy_mesh->mesh_size.x2min;
+    else L = pmy_mesh->mesh_size.x3max - pmy_mesh->mesh_size.x3min;
+    length_of_rotation_region = pin->GetOrAddReal("problem","length_of_rotation_region",L/10.0);
+
+    if (mesh_size.nx3==1) {
+      rotation_region_min = (L/2.0 - length_of_rotation_region/2.0) +  pmy_mesh->mesh_size.x2min;
+      rotation_region_max = rotation_region_min + length_of_rotation_region;
+    }
+    else{
+      rotation_region_min = (L/2.0 - length_of_rotation_region/2.0) +  pmy_mesh->mesh_size.x3min;
+      rotation_region_max = rotation_region_min + length_of_rotation_region;
+    }
+
 
 
     AllocateUserHistoryOutput(2);
@@ -481,45 +641,6 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
   // Real drat = pin->GetOrAddReal("problem","drat",3.0);
 
 
-  Real beta_c = pin->GetOrAddReal("problem","beta_c",1.0);
-  Real sigma_c = pin->GetOrAddReal("problem","sigma_c",1.0);
-
-
-  Real press_over_rho_interface = beta_c * sigma_c /2.0;
-  Real sigma_h = pin->GetOrAddReal("problem","sigma_h",1.0);
-  Real beta_h = press_over_rho_interface/sigma_h * 2.0;
-
-
-  grav_acc = pin->GetReal("problem", "grav_acc");
-  Real f_kep_shear = pin->GetOrAddReal("problem","f_kep_shear",0.0);
-  Real effective_graviational_radius = std::sqrt(1.0/std::fabs(grav_acc));
-  Real effective_keplerian_velocity = std::sqrt(1/effective_graviational_radius);
-  shear_velocity = f_kep_shear * effective_keplerian_velocity;
-
-
-  Real rho_h = 1.0;
-
-
-  Real Bh = std::sqrt(sigma_h * rho_h);
-
-  // sigma_h/sigma_c = Bh^2/Bc^2 * drat
-  // Bh^2/Bc^2 = 1 + (1 - 1/drat)*beta_c 
-  // sigma_h/sigma_c  = drat + (drat -1)*beta_c
-  Real drat = ( sigma_h/sigma_c+beta_c )/(1.0 + beta_c);
-
-  Real rho_c = rho_h * drat;
-
-  Real Bc = Bh / std::sqrt(1.0 + (1.0 - 1.0/drat)*beta_c);
-
-
-// press_over_rho = SQR(cs)/(gamma - (gamma/(gamma-1))*SQR(cs));
-  Real cs = std::sqrt(press_over_rho_interface * gamma_adi / (1.0 + gamma_adi/(gm1) *press_over_rho_interface) );
-
-  Real L;
-  if (block_size.nx3==1) L = pmy_mesh->mesh_size.x2max - pmy_mesh->mesh_size.x2min;
-  else L = pmy_mesh->mesh_size.x3max - pmy_mesh->mesh_size.x3min;
-  Real length_of_rotation_region = pin->GetOrAddReal("problem","length_of_rotation_region",L/10.0);
-
 // Bc^2 / rho_c = sigma_h * (1 + (1-1/drat)*beta_c)/drat
 
 
@@ -632,19 +753,14 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
     if (MAGNETIC_FIELDS_ENABLED) {
       // Read magnetic field strength, angle [in degrees, 0 is along +ve X-axis]
       // Real b0 = pin->GetReal("problem","b0");
-      Real theta_rot = pin->GetReal("problem","theta_rot");
-      theta_rot = (theta_rot/180.)*PI;
 
       // Real L = pmy_mesh->mesh_size.x2max - pmy_mesh->mesh_size.x2min;
-      // Real rotation_region_y_min = 3.0*L/8.0 +  pmy_mesh->mesh_size.x2min;
-      // Real rotation_region_y_max = rotation_region_y_min + L/4.0;
+      // Real rotation_region_min = 3.0*L/8.0 +  pmy_mesh->mesh_size.x2min;
+      // Real rotation_region_max = rotation_region_min + L/4.0;
 
-      // Real rotation_region_y_min =  L/2.0 + pmy_mesh->mesh_size.x2min;
-      // Real rotation_region_y_max = L/2.0 + pmy_mesh->mesh_size.x2min;
+      // Real rotation_region_min =  L/2.0 + pmy_mesh->mesh_size.x2min;
+      // Real rotation_region_max = L/2.0 + pmy_mesh->mesh_size.x2min;
 
-
-      Real rotation_region_y_min = (L/2.0 - length_of_rotation_region/2.0) +  pmy_mesh->mesh_size.x2min;
-      Real rotation_region_y_max = rotation_region_y_min + length_of_rotation_region;
 
       Real Bin = ( Bh * Bc * std::sin(theta_rot) ) / std::sqrt( SQR(Bh) + SQR(Bc) + 2.0*Bh*Bc*std::cos(theta_rot) ) ;
       Real Bhx = Bin;
@@ -687,7 +803,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       Real A_const_rotation_region_ymax = exp_arg_term_rotation_region_ymax;
       Real B_const_rotation_region_ymax = 1.0 + 2.0 * grav_acc*y0 - SQR(shear_velocity);
 
-      Real Bmag_rotation_region_ymax = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const_rotation_region_ymax *rotation_region_y_max, A_const_rotation_region_ymax/C_const));
+      Real Bmag_rotation_region_ymax = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const_rotation_region_ymax *rotation_region_max, A_const_rotation_region_ymax/C_const));
 
       Real Bx_rotation_region_ymax = Bcx * Bmag_rotation_region_ymax/Bc;
       Real Bz_rotation_region_ymax = Bcz * Bmag_rotation_region_ymax/Bc;
@@ -698,7 +814,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       Real B_const_rotation_region_ymin = 1.0 + 2.0 * grav_acc*y0;
 
 
-      Real Bmag_rotation_region_ymin = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const_rotation_region_ymin *rotation_region_y_min, A_const_rotation_region_ymin/C_const));
+      Real Bmag_rotation_region_ymin = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const_rotation_region_ymin *rotation_region_min, A_const_rotation_region_ymin/C_const));
 
       Real Bx_rotation_region_ymin = Bhx * Bmag_rotation_region_ymin/Bh;
       Real Bz_rotation_region_ymin = Bhz * Bmag_rotation_region_ymin/Bh;
@@ -737,16 +853,16 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             }
 
 
-            if (pcoord->x2v(j) < rotation_region_y_min){
+            if (pcoord->x2v(j) < rotation_region_min){
               Bx = Bhx * Bmag/Bh;
               Bz = Bhz * Bmag/Bh;
             }
-            else if (pcoord->x2v(j) < rotation_region_y_max){
-              Real w = ( pcoord->x2v(j) -rotation_region_y_min )/(rotation_region_y_max-rotation_region_y_min);
-              // Bx = Bhx + Bx_slope * ( pcoord->x2v(j) - rotation_region_y_min);
-              // Bz = Bhz + Bz_slope * ( pcoord->x2v(j) - rotation_region_y_min);
-              // Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x2v(j) - rotation_region_y_min);
-              // Bz = Bhz_norm + Bz_slope_norm * ( pcoord->x2v(j) - rotation_region_y_min);
+            else if (pcoord->x2v(j) < rotation_region_max){
+              Real w = ( pcoord->x2v(j) -rotation_region_min )/(rotation_region_max-rotation_region_min);
+              // Bx = Bhx + Bx_slope * ( pcoord->x2v(j) - rotation_region_min);
+              // Bz = Bhz + Bz_slope * ( pcoord->x2v(j) - rotation_region_min);
+              // Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x2v(j) - rotation_region_min);
+              // Bz = Bhz_norm + Bz_slope_norm * ( pcoord->x2v(j) - rotation_region_min);
 
 
 
@@ -754,8 +870,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
               // Bz = Bhz_norm * std::sin((1.0-w)*theta_rot)/(sin(theta_rot) + 1e-10) + Bcz_norm*std::sin(w*theta_rot)/(sin(theta_rot) + 1e-10);
 
 
-              Bx = Bx_rotation_region_ymin + Bx_slope * ( pcoord->x2v(j) - rotation_region_y_min);
-              Bz = Bz_rotation_region_ymin + Bz_slope * ( pcoord->x2v(j) - rotation_region_y_min);
+              Bx = Bx_rotation_region_ymin + Bx_slope * ( pcoord->x2v(j) - rotation_region_min);
+              Bz = Bz_rotation_region_ymin + Bz_slope * ( pcoord->x2v(j) - rotation_region_min);
               //Now normalize
 
               Real B_norm = std::sqrt( SQR(Bx) + SQR(Bz) );
@@ -867,25 +983,25 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
               // Bmag = Bh * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
             }
 
-            if (pcoord->x2v(j) < rotation_region_y_min){
+            if (pcoord->x2v(j) < rotation_region_min){
               Bx = Bhx * Bmag/Bh;
               Bz = Bhz * Bmag/Bh;
             }
-            else if (pcoord->x2v(j) < rotation_region_y_max){
-              Real w = ( pcoord->x2v(j) -rotation_region_y_min )/(rotation_region_y_max-rotation_region_y_min);
+            else if (pcoord->x2v(j) < rotation_region_max){
+              Real w = ( pcoord->x2v(j) -rotation_region_min )/(rotation_region_max-rotation_region_min);
 
-              // Bx = Bhx + Bx_slope * ( pcoord->x2v(j) - rotation_region_y_min);
-              // Bz = Bhz + Bz_slope * ( pcoord->x2v(j) - rotation_region_y_min);
-              // Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x2v(j) - rotation_region_y_min);
-              // Bz = Bhz_norm + Bz_slope_norm * ( pcoord->x2v(j) - rotation_region_y_min);
+              // Bx = Bhx + Bx_slope * ( pcoord->x2v(j) - rotation_region_min);
+              // Bz = Bhz + Bz_slope * ( pcoord->x2v(j) - rotation_region_min);
+              // Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x2v(j) - rotation_region_min);
+              // Bz = Bhz_norm + Bz_slope_norm * ( pcoord->x2v(j) - rotation_region_min);
 
 
               // Bx = Bhx_norm * std::sin((1.0-w)*theta_rot)/(sin(theta_rot) + 1e-10) + Bcx_norm*std::sin(w*theta_rot)/(sin(theta_rot) + 1e-10);
               // Bz = Bhz_norm * std::sin((1.0-w)*theta_rot)/(sin(theta_rot) + 1e-10) + Bcz_norm*std::sin(w*theta_rot)/(sin(theta_rot) + 1e-10);
 
 
-              Bx = Bx_rotation_region_ymin + Bx_slope * ( pcoord->x2v(j) - rotation_region_y_min);
-              Bz = Bz_rotation_region_ymin + Bz_slope * ( pcoord->x2v(j) - rotation_region_y_min);
+              Bx = Bx_rotation_region_ymin + Bx_slope * ( pcoord->x2v(j) - rotation_region_min);
+              Bz = Bz_rotation_region_ymin + Bz_slope * ( pcoord->x2v(j) - rotation_region_min);
 
               //Now normalize
 
@@ -895,12 +1011,12 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
               Bx = Bx * Bmag/B_norm;
               Bz = Bz * Bmag/B_norm;
               }
-            // else if (pcoord->x2v(j) < rotation_region_y_max){
-            //   Bx = Bhx + Bx_slope * ( pcoord->x2v(j) - rotation_region_y_min);
-            //   Bz = Bhz + Bz_slope * ( pcoord->x2v(j) - rotation_region_y_min);
+            // else if (pcoord->x2v(j) < rotation_region_max){
+            //   Bx = Bhx + Bx_slope * ( pcoord->x2v(j) - rotation_region_min);
+            //   Bz = Bhz + Bz_slope * ( pcoord->x2v(j) - rotation_region_min);
 
-            //   // Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x2v(j) - rotation_region_y_min);
-            //   // Bz = Bhz_norm + Bz_slope_norm * ( pcoord->x2v(j) - rotation_region_y_min);
+            //   // Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x2v(j) - rotation_region_min);
+            //   // Bz = Bhz_norm + Bz_slope_norm * ( pcoord->x2v(j) - rotation_region_min);
 
             //   //Now normalize
 
@@ -1155,16 +1271,11 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
     // initialize interface B
     if (MAGNETIC_FIELDS_ENABLED) {
       // Read magnetic field strength, angle [in degrees, 0 is along +ve X-axis]
-      Real theta_rot = pin->GetReal("problem","theta_rot");
-      theta_rot = (theta_rot/180.)*PI;
-
-      Real rotation_region_z_min = (L/2.0-length_of_rotation_region/2.0) +  pmy_mesh->mesh_size.x3min;
-      Real rotation_region_z_max = rotation_region_z_min + length_of_rotation_region;
 
 
 
-      // Real rotation_region_z_min = 3.0*L/8.0 +  pmy_mesh->mesh_size.x3min;
-      // Real rotation_region_z_max = rotation_region_z_min + L/4.0;
+      // Real rotation_region_min = 3.0*L/8.0 +  pmy_mesh->mesh_size.x3min;
+      // Real rotation_region_max = rotation_region_min + L/4.0;
 
       Real Bin = ( Bh * Bc * std::sin(theta_rot) ) / std::sqrt( SQR(Bh) + SQR(Bc) + 2.0*Bh*Bc*std::cos(theta_rot) ) ;
       Real Bhx = Bin;
@@ -1197,7 +1308,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       Real A_const_rotation_region_zmax = exp_arg_term_rotation_region_zmax;
       Real B_const_rotation_region_zmax = 1.0 + 2.0 * grav_acc*z0 - SQR(shear_velocity);
 
-      Real Bmag_rotation_region_zmax = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const_rotation_region_zmax *rotation_region_z_max, A_const_rotation_region_zmax/C_const));
+      Real Bmag_rotation_region_zmax = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const_rotation_region_zmax *rotation_region_max, A_const_rotation_region_zmax/C_const));
 
       Real Bx_rotation_region_zmax = Bcx * Bmag_rotation_region_zmax/Bc;
       Real By_rotation_region_zmax = Bcy * Bmag_rotation_region_zmax/Bc;
@@ -1207,7 +1318,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       Real A_const_rotation_region_zmin = exp_arg_term_rotation_region_zmin;
       Real B_const_rotation_region_zmin = 1.0 + 2.0 * grav_acc*z0;
 
-      Real Bmag_rotation_region_zmin = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const_rotation_region_zmin *rotation_region_z_min, A_const_rotation_region_zmin/C_const));
+      Real Bmag_rotation_region_zmin = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const_rotation_region_zmin *rotation_region_min, A_const_rotation_region_zmin/C_const));
 
       Real Bx_rotation_region_zmin = Bhx * Bmag_rotation_region_zmin/Bh;
       Real By_rotation_region_zmin = Bhy * Bmag_rotation_region_zmin/Bh;
@@ -1248,20 +1359,20 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             }
 
 
-            if (pcoord->x3v(k) < rotation_region_z_min){
+            if (pcoord->x3v(k) < rotation_region_min){
               Bx = Bhx * Bmag/Bh;
               By = Bhy * Bmag/Bh;
             }
-            else if (pcoord->x3v(k) < rotation_region_z_max){
-              // Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_z_min);
-              // By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+            else if (pcoord->x3v(k) < rotation_region_max){
+              // Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_min);
+              // By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_min);
 
 
-              // Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x3v(k) - rotation_region_z_min);
-              // By = Bhy_norm + By_slope_norm * ( pcoord->x3v(k) - rotation_region_z_min);
+              // Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x3v(k) - rotation_region_min);
+              // By = Bhy_norm + By_slope_norm * ( pcoord->x3v(k) - rotation_region_min);
 
-              Bx = Bx_rotation_region_zmin + Bx_slope * ( pcoord->x3v(k) - rotation_region_z_min);
-              By = By_rotation_region_zmin + By_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+              Bx = Bx_rotation_region_zmin + Bx_slope * ( pcoord->x3v(k) - rotation_region_min);
+              By = By_rotation_region_zmin + By_slope * ( pcoord->x3v(k) - rotation_region_min);
 
               //Now normalize
 
@@ -1269,12 +1380,12 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
               Bx = Bx * Bmag/B_norm;
               By = By * Bmag/B_norm;
               }
-            // else if (pcoord->x3v(k) < rotation_region_z_max){
-            //   // Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_z_min);
-            //   // By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+            // else if (pcoord->x3v(k) < rotation_region_max){
+            //   // Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_min);
+            //   // By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_min);
 
-            //   Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x3v(k) - rotation_region_z_min);
-            //   By = Bhy_norm + By_slope_norm * ( pcoord->x3v(k) - rotation_region_z_min);
+            //   Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x3v(k) - rotation_region_min);
+            //   By = Bhy_norm + By_slope_norm * ( pcoord->x3v(k) - rotation_region_min);
 
             //   //Now normalize
 
@@ -1404,19 +1515,19 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             }
 
 
-            if (pcoord->x3v(k) < rotation_region_z_min){
+            if (pcoord->x3v(k) < rotation_region_min){
               Bx = Bhx * Bmag/Bh;
               By = Bhy * Bmag/Bh;
             }
-            else if (pcoord->x3v(k) < rotation_region_z_max){
-              // Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_z_min);
-              // By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+            else if (pcoord->x3v(k) < rotation_region_max){
+              // Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_min);
+              // By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_min);
 
-              // Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x3v(k) - rotation_region_z_min);
-              // By = Bhy_norm + By_slope_norm * ( pcoord->x3v(k) - rotation_region_z_min);
+              // Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x3v(k) - rotation_region_min);
+              // By = Bhy_norm + By_slope_norm * ( pcoord->x3v(k) - rotation_region_min);
 
-              Bx = Bx_rotation_region_zmin + Bx_slope * ( pcoord->x3v(k) - rotation_region_z_min);
-              By = By_rotation_region_zmin + By_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+              Bx = Bx_rotation_region_zmin + Bx_slope * ( pcoord->x3v(k) - rotation_region_min);
+              By = By_rotation_region_zmin + By_slope * ( pcoord->x3v(k) - rotation_region_min);
 
               //Now normalize
 
@@ -1424,12 +1535,12 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
               Bx = Bx * Bmag/B_norm;
               By = By * Bmag/B_norm;
               }
-            // else if (pcoord->x3v(k) < rotation_region_z_max){
-            //   // Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_z_min);
-            //   // By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_z_min);
+            // else if (pcoord->x3v(k) < rotation_region_max){
+            //   // Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_min);
+            //   // By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_min);
 
-            //   Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x3v(k) - rotation_region_z_min);
-            //   By = Bhy_norm + By_slope_norm * ( pcoord->x3v(k) - rotation_region_z_min);
+            //   Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x3v(k) - rotation_region_min);
+            //   By = Bhy_norm + By_slope_norm * ( pcoord->x3v(k) - rotation_region_min);
 
             //   //Now normalize
 
