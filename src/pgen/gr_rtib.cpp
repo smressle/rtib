@@ -82,7 +82,7 @@ Real beta_c, sigma_c,press_over_rho_interface, sigma_h,beta_h;
 Real rho_h,rho_c, Bh,Bc,drat;
 Real P_h, P_c;
 Real L, length_of_rotation_region;
-Real rotation_region_min, rotation_region_max
+Real rotation_region_min, rotation_region_max;
 Real theta_rot;
 } // namespace
 
@@ -144,11 +144,11 @@ void Pressure_ODE_2D(Real t, const Real y, bool is_top,ParameterInput *pin, Mesh
       Real v_z = 0.0;
 
 
-      Real uu_t = np.sqrt( -1 / ( g_00 + g_11*SQR(v_x) + g_22*SQR(v_y) + g_33*SQR(v_z) + 
-                                2.0*g_02*v_y )   )
-      Real uu_x = uu_t*v_x
-      Real uu_y = uu_t*v_y
-      Real uu_z = uu_t*v_z
+      Real uu_t = std::sqrt( -1 / ( g_00 + g_11*SQR(v_x) + g_22*SQR(v_y) + g_33*SQR(v_z) + 
+                                2.0*g_02*v_y )   );
+      Real uu_x = uu_t*v_x;
+      Real uu_y = uu_t*v_y;
+      Real uu_z = uu_t*v_z;
 
       Real theta_y = GetBAngle(t);
 
@@ -216,11 +216,11 @@ void Pressure_ODE_3D(Real t, const Real y, bool is_top,ParameterInput *pin, Mesh
       Real v_z = 0.0;
 
 
-      Real uu_t = np.sqrt( -1 / ( g_00 + g_11*SQR(v_x) + g_22*SQR(v_y) + g_33*SQR(v_z) + 
-                                2.0*g_03*v_z )   )
-      Real uu_x = uu_t*v_x
-      Real uu_y = uu_t*v_y
-      Real uu_z = uu_t*v_z
+      Real uu_t = std::sqrt( -1 / ( g_00 + g_11*SQR(v_x) + g_22*SQR(v_y) + g_33*SQR(v_z) + 
+                                2.0*g_03*v_z )   );
+      Real uu_x = uu_t*v_x;
+      Real uu_y = uu_t*v_y;
+      Real uu_z = uu_t*v_z;
 
       Real theta_y = GetBAngle(t);
 
