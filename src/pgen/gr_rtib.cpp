@@ -1351,6 +1351,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           }
         }
       }
+      P_sol.DeleteAthenaArray();
     }
 
     // 3D PROBLEM ----------------------------------------------------------------
@@ -1872,6 +1873,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
         }
       }
     }
+
+    P_sol.DeleteAthenaArray();
   } // end of 3D initialization
 
 
@@ -1964,7 +1967,6 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
   }
     
 
-  P_sol.DeleteAthenaArray():
     UserWorkInLoop();
   return;
 }
