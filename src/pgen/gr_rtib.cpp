@@ -73,6 +73,16 @@ void linear_metric_3D(Real x1, Real x2, Real x3, ParameterInput *pin,
     AthenaArray<Real> &dg_dx2, AthenaArray<Real> &dg_dx3);
 
 Real Phi_func(Real z, Real gravitational_acceleration,Real z0 );
+void rungeKutta4(
+    void (*f)(Real t, Real y, bool is_top, ParameterInput *pin, MeshBlock *pmb,Real dydt),
+    Real y,
+    Real t0,
+    Real t1,
+    Real dt,
+    bool is_top,
+    ParameterInput *pin,
+    MeshBlock *pmb
+);
 
 
 namespace {
@@ -159,7 +169,7 @@ void Pressure_ODE_2D(Real t, const Real y, bool is_top,ParameterInput *pin, Mesh
       // By_over_Bx = 0
       // Bz_over_Bx = 0
 
-      Real b0_over_fake_B = g_11 * uu_x * Bx_over_fake_B + g_22 * By_over_fake_B * uu_y  + g_02 * By_over_fake_B * uu_t ;
+      Real b0_over_fake_B = g_11 * uu_x * Bx_over_fake_B + g_22 * By_over_fake_B * uu_y  + g_02 * By_over_fake_B * uu_t + g_33 * Bz_over_fake_B * uu_z ;
       Real bu_over_fake_B[4];
 
       bu_over_fake_B[0] = b0_over_fake_B;
@@ -193,7 +203,7 @@ void Pressure_ODE_2D(Real t, const Real y, bool is_top,ParameterInput *pin, Mesh
 
 
 }
-void Pressure_ODE_3D(Real t, const Real y, bool is_top,ParameterInput *pin, MeshBlock *pmb, Real dydt) {
+void Pressure_ODE_3D(Real t, Real y, bool is_top,ParameterInput *pin, MeshBlock *pmb, Real dydt) {
 
 
       Real P = y;
@@ -233,7 +243,7 @@ void Pressure_ODE_3D(Real t, const Real y, bool is_top,ParameterInput *pin, Mesh
       // By_over_Bx = 0
       // Bz_over_Bx = 0
 
-      Real b0_over_fake_B = g_11 * uu_x * Bx_over_fake_B + g_22 * By_over_fake_B * uu_y  + g_02 * By_over_fake_B * uu_t ;
+      Real b0_over_fake_B = g_11 * uu_x * Bx_over_fake_B + g_22 * By_over_fake_B * uu_y  + g_03 * Bz_over_fake_B * uu_t + g_33 * Bz_over_fake_B * uu_z;
       Real bu_over_fake_B[4];
 
       bu_over_fake_B[0] = b0_over_fake_B;
@@ -268,7 +278,7 @@ void Pressure_ODE_3D(Real t, const Real y, bool is_top,ParameterInput *pin, Mesh
 
 // Runge-Kutta 4th order ODE solver \
 void rungeKutta4(
-    void (*f)(Real t, const Real y, bool is_top, ParameterInput *pin, MeshBlock *pmb,Real dydt),
+    void (*f)(Real t, Real y, bool is_top, ParameterInput *pin, MeshBlock *pmb,Real dydt),
     Real y,
     Real t0,
     Real t1,
