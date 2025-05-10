@@ -105,7 +105,7 @@ Real GetBAngle(const Real x){
       Real angle_with_x_c = std::arctan2(Bcz,Bzx);
 
 
-      Real w = (y - rotation_region_ymin) / (rotation_region_ymax - rotation_region_ymin);
+      Real w = (x - rotation_region_min) / (rotation_region_max - rotation_region_min);
       if (w>1) w = 1.0;
       if (w<0) w = 0.0;
       // Real theta_y = (1.0 - w) * angle_with_x_h + w * angle_with_x_c;
@@ -224,8 +224,8 @@ void Pressure_ODE_3D(Real t, const Real y, bool is_top,ParameterInput *pin, Mesh
       Real theta_y = GetBAngle(t);
 
       Real Bx_over_fake_B = std::cos(theta_y);
-      Real By_over_fake_B = 0.0;
-      Real Bz_over_fake_B = std::sin(theta_y);
+      Real By_over_fake_B = std::sin(theta_y);
+      Real Bz_over_fake_B = 0.0;
 
 
       // By_over_Bx = 0
@@ -239,7 +239,7 @@ void Pressure_ODE_3D(Real t, const Real y, bool is_top,ParameterInput *pin, Mesh
       bu_over_fake_B[2] = (By_over_fake_B + b0_over_fake_B * uu_y)/uu_t;
       bu_over_fake_B[3] = (Bz_over_fake_B + b0_over_fake_B * uu_z)/uu_t;
 
-      Real bsq_over_fake_B_sq = bu_over_fake_B[0]*bu_over_fake_B[0]*g_00 + bu_over_fake_B[1]*bu_over_fake_B[1]*g_11 + bu_over_fake_B[2]*bu_over_fake_B[2] *g_22  + bu_over_fake_B[0]*bu_over_fake_B[2] *g_02 + bu_over_fake_B[2]*bu_over_fake_B[0] *g_20 + bu_over_fake_B[3]*bu_over_fake_B[3]*g_33 ;
+      Real bsq_over_fake_B_sq = bu_over_fake_B[0]*bu_over_fake_B[0]*g_00 + bu_over_fake_B[1]*bu_over_fake_B[1]*g_11 + bu_over_fake_B[2]*bu_over_fake_B[2] *g_22  + bu_over_fake_B[0]*bu_over_fake_B[3] *g_03 + bu_over_fake_B[3]*bu_over_fake_B[0] *g_30 + bu_over_fake_B[3]*bu_over_fake_B[3]*g_33 ;
 
       Real numerator = g_N;
       Real denominator = (1.0 + 2.0 * Phi_N - SQR(v_x) );
