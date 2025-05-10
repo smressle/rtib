@@ -122,7 +122,6 @@ Real GetBAngle(const Real x){
 
 void Pressure_ODE_2D(Real t, const Real y, bool is_top,ParameterInput *pin, MeshBlock *pmb, Real dydt) {
 
-
       Real P = y;
       Real y0 = pin->GetReal("problem", "y0");
       Real Phi_N = -grav_acc * (t-y0);
@@ -191,6 +190,8 @@ void Pressure_ODE_2D(Real t, const Real y, bool is_top,ParameterInput *pin, Mesh
           2 * (SQR(Bx_over_fake_B)/bsq_over_fake_B_sq) * ( SQR(v_x) )
       );
       dydt =  (P / (beta + 1)) * prefactor * bracket;
+
+
 }
 void Pressure_ODE_3D(Real t, const Real y, bool is_top,ParameterInput *pin, MeshBlock *pmb, Real dydt) {
 
@@ -403,7 +404,7 @@ void integrate_P_ODE(MeshBlock *pmb,ParameterInput *pin,AthenaArray<Real> P_sol 
 
 
 
-  }
+    }
   }
   else{ //2D
 
@@ -488,8 +489,7 @@ void integrate_P_ODE(MeshBlock *pmb,ParameterInput *pin,AthenaArray<Real> P_sol 
 
   }
 
-
-
+}
 
 }
 
