@@ -82,6 +82,7 @@ Real beta_c, sigma_c,press_over_rho_interface, sigma_h,beta_h;
 Real rho_h,rho_c, Bh,Bc,drat;
 Real P_h, P_c;
 Real L, length_of_rotation_region;
+Real rotation_region_min, rotation_region_max
 Real theta_rot;
 } // namespace
 
@@ -101,8 +102,8 @@ Real GetBAngle(const Real x){
       Real Bcz =             std::sqrt( SQR(Bc) - SQR(Bin) );
 
 
-      Real angle_with_x_h = std::arctan2(Bhz,Bhx);
-      Real angle_with_x_c = std::arctan2(Bcz,Bzx);
+      Real angle_with_x_h = std::atan2(Bhz,Bhx);
+      Real angle_with_x_c = std::atan2(Bcz,Bcx);
 
 
       Real w = (x - rotation_region_min) / (rotation_region_max - rotation_region_min);
@@ -125,21 +126,21 @@ void Pressure_ODE_2D(Real t, const Real y, bool is_top,ParameterInput *pin, Mesh
       Real P = y;
       Real y0 = pin->GetReal("problem", "y0");
       Real Phi_N = -grav_acc * (t-y0);
-      Real gamma_adi = pmb->pos->GetGamma();
+      Real gamma_adi = pmb->peos->GetGamma();
 
 
 
-      Real g_00 = -(1.0 + 2.0*Phi_N)
-      Real g_11 = 1.0
-      Real g_22 = 1.0 - 2.0*Phi_N
-      Real g_02 = -2.0*Phi_N 
-      Real g_20 = g_02
-      Real g_33 = 1.0
+      Real g_00 = -(1.0 + 2.0*Phi_N);
+      Real g_11 = 1.0;
+      Real g_22 = 1.0 - 2.0*Phi_N;
+      Real g_02 = -2.0*Phi_N ;
+      Real g_20 = g_02;
+      Real g_33 = 1.0;
 
       Real v_x;
       if (is_top) v_x = shear_velocity/2.0;
       else v_x = -shear_velocity/2.0;
-      Real v_y = 0.0.
+      Real v_y = 0.0;
       Real v_z = 0.0;
 
 
@@ -201,17 +202,17 @@ void Pressure_ODE_3D(Real t, const Real y, bool is_top,ParameterInput *pin, Mesh
 
 
 
-      Real g_00 = -(1.0 + 2.0*Phi_N)
-      Real g_11 = 1.0
-      Real g_33 = 1.0 - 2.0*Phi_N
-      Real g_03 = -2.0*Phi_N 
-      Real g_30 = g_03
-      Real g_22 = 1.0
+      Real g_00 = -(1.0 + 2.0*Phi_N);
+      Real g_11 = 1.0;
+      Real g_33 = 1.0 - 2.0*Phi_N;
+      Real g_03 = -2.0*Phi_N ;
+      Real g_30 = g_03;
+      Real g_22 = 1.0;
 
       Real v_x;
       if (is_top) v_x = shear_velocity/2.0;
       else v_x = -shear_velocity/2.0;
-      Real v_y = 0.0.
+      Real v_y = 0.0;
       Real v_z = 0.0;
 
 
@@ -950,8 +951,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       // Real Bx_slope_norm = (Bcx_norm - Bhx_norm) / ( length_of_rotation_region) ; 
       // Real Bz_slope_norm = (Bcz_norm - Bhz_norm) / ( length_of_rotation_region) ; 
 
-      // Real angle_with_x_h = std::arctan2(Bhz,Bhx);
-      // Real angle_with_x_c = std::arctan2(Bcz,Bzx);
+      // Real angle_with_x_h = std::atan2(Bhz,Bhx);
+      // Real angle_with_x_c = std::atan2(Bcz,Bzx);
 
       //Bhx = Bh*std::cos(angle_with_x_h)
       //Bhz = Bh*std::sin(angle_with_x_c)
