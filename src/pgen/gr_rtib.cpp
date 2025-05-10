@@ -814,8 +814,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
     Real y0 = pin->GetReal("problem", "y0");
 
     AthenaArray<Real> P_sol;
-    P_sol.NewAthenaArray(ju-ll+1);
-    integrate_P_ODE(il,iu,jl,ju,kl,ku,pcoord->x2v,pmp,pin,P_sol );
+    P_sol.NewAthenaArray(ju-jl+1);
+    integrate_P_ODE(il,iu,jl,ju,kl,ku,pcoord->x2v,pmb,pin,P_sol );
     for (int k=kl; k<=ku; k++) {
       for (int j=jl; j<=ju; j++) {
         pcoord->CellMetric(k, j, il, iu, g, gi);
@@ -1538,7 +1538,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
               // Bmag = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const));
 
-              Bmag = std::sqrt( P_sol(k) (1/beta_c)*2.0 );
+              Bmag = std::sqrt( P_sol(k) * (1/beta_c)*2.0 );
 
               // Bmag = Bc * std::sqrt( std::exp(pcoord->x3v(k)*exp_arg_term));
 
@@ -1551,7 +1551,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
               // Bmag = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const));
 
-              Bmag = std::sqrt( P_sol(k) (1/beta_h)*2.0 );
+              Bmag = std::sqrt( P_sol(k) * (1/beta_h)*2.0 );
 
             }
 
@@ -1704,7 +1704,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
               // Bmag = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const));
 
-              Bmag = std::sqrt(P_sol/beta_c*2.0);
+              Bmag = std::sqrt(P_sol(k)/beta_c*2.0);
 
               // Bmag = Bc * std::sqrt( std::exp(pcoord->x3v(k)*exp_arg_term));
 
@@ -1717,7 +1717,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
               // Bmag = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const));
 
-              Bmag = std::sqrt(P_sol/beta_h*2.0);
+              Bmag = std::sqrt(P_sol(k)/beta_h*2.0);
             }
 
 
