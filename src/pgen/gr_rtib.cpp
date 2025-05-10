@@ -130,7 +130,7 @@ Real GetBAngle(const Real x){
       return  angle_with_x_h + w * delta_theta;
 }
 
-void Pressure_ODE_2D(Real t, const Real y, bool is_top,ParameterInput *pin, MeshBlock *pmb, Real dydt) {
+void Pressure_ODE_2D(Real t, const Real y, bool is_top,ParameterInput *pin, MeshBlock *pmb, Real *dydt) {
 
       Real P = y;
       Real y0 = pin->GetReal("problem", "y0");
@@ -199,11 +199,11 @@ void Pressure_ODE_2D(Real t, const Real y, bool is_top,ParameterInput *pin, Mesh
           2  - 
           2 * (SQR(Bx_over_fake_B)/bsq_over_fake_B_sq) * ( SQR(v_x) )
       );
-      dydt =  (P / (beta + 1)) * prefactor * bracket;
+      *dydt =  (P / (beta + 1)) * prefactor * bracket;
 
 
 }
-void Pressure_ODE_3D(Real t, Real y, bool is_top,ParameterInput *pin, MeshBlock *pmb, Real dydt) {
+void Pressure_ODE_3D(Real t, Real y, bool is_top,ParameterInput *pin, MeshBlock *pmb, Real *dydt) {
 
 
       Real P = y;
@@ -273,13 +273,13 @@ void Pressure_ODE_3D(Real t, Real y, bool is_top,ParameterInput *pin, MeshBlock 
           2  - 
           2 * (SQR(Bx_over_fake_B)/bsq_over_fake_B_sq) * ( SQR(v_x) )
       );
-      dydt =  (P / (beta + 1)) * prefactor * bracket;
+      *dydt =  (P / (beta + 1)) * prefactor * bracket;
 }
 
 // Runge-Kutta 4th order ODE solver \
 void rungeKutta4(
-    void (*f)(Real t, Real y, bool is_top, ParameterInput *pin, MeshBlock *pmb,Real dydt),
-    Real y,
+    void (*f)(Real t, Real y, bool is_top, ParameterInput *pin, MeshBlock *pmb,Real *dydt),
+    Real *y,
     Real t0,
     Real t1,
     Real dt,
@@ -291,19 +291,19 @@ void rungeKutta4(
     Real  k1, k2, k3, k4, yTemp;
 
     while (t < t1) {
-        f(t, y, is_top, pin, pmb, k1);
+        f(t, *y, is_top, pin, pmb, &k1);
 
-        yTemp = y + dt * k1 / 2.0;
-        f(t + dt / 2.0, yTemp, is_top, pin, pmb, k2);
+        yTemp = *y + dt * k1 / 2.0;
+        f(t + dt / 2.0, yTemp, is_top, pin, pmb, &k2);
 
-        yTemp = y + dt * k2 / 2.0;
-        f(t + dt / 2.0, yTemp, is_top, pin, pmb, k3);
+        yTemp = *y + dt * k2 / 2.0;
+        f(t + dt / 2.0, yTemp, is_top, pin, pmb, &k3);
 
-        yTemp[i] = y + dt * k3;
-        f(t + dt, yTemp, is_top, pin, pmb, k4);
+        yTemp = *y + dt * k3;
+        f(t + dt, yTemp, is_top, pin, pmb, &k4);
 
         // Update y
-        y += dt / 6.0 * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
+        *y += dt / 6.0 * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
 
         t += dt;
 
@@ -339,13 +339,13 @@ void integrate_P_ODE(MeshBlock *pmb,ParameterInput *pin,AthenaArray<Real> P_sol 
        //do first step
        Real dt_runge_kutta = (pmb->pcoord->x3v(kl)-0.0)/(pmb->pmy_mesh->mesh_size.nx3*10.0);
        Real P_result = P_h;
-       rungeKutta4(Pressure_ODE_3D,P_result, 0.0,pmb->pcoord->x3v(kl), dt_runge_kutta, true, pin,pmb); 
+       rungeKutta4(Pressure_ODE_3D,&P_result, 0.0,pmb->pcoord->x3v(kl), dt_runge_kutta, true, pin,pmb); 
        P_sol(kl) = P_result;
 
        for (int k=kl+1; k<=ku; k++) {
          dt_runge_kutta = (pmb->pcoord->x3v(k)-pmb->pcoord->x3v(k-1))/(10.0);
          P_result = P_sol(k-1);
-         rungeKutta4(Pressure_ODE_3D, P_result, pmb->pcoord->x3v(k-1),pmb->pcoord->x3v(k), dt_runge_kutta, true, pin,pmb); 
+         rungeKutta4(Pressure_ODE_3D, &P_result, pmb->pcoord->x3v(k-1),pmb->pcoord->x3v(k), dt_runge_kutta, true, pin,pmb); 
          P_sol(k) = P_result;
 
        }
@@ -357,14 +357,14 @@ void integrate_P_ODE(MeshBlock *pmb,ParameterInput *pin,AthenaArray<Real> P_sol 
       //do first step
        Real dt_runge_kutta = (pmb->pcoord->x3v(ku) - 0.0)/(pmb->pmy_mesh->mesh_size.nx3*10.0);
        Real P_result = P_c;
-       rungeKutta4(Pressure_ODE_3D,P_result, 0.0, pmb->pcoord->x3v(ku),  dt_runge_kutta, false, pin,pmb); 
+       rungeKutta4(Pressure_ODE_3D,&P_result, 0.0, pmb->pcoord->x3v(ku),  dt_runge_kutta, false, pin,pmb); 
        P_sol(ku) = P_result;
 
 
         for (int k=ku-1; k<=kl; k--) {
          dt_runge_kutta = (pmb->pcoord->x3v(k)-pmb->pcoord->x3v(k+1))/(10.0);
          P_result = P_sol(k+1);
-         rungeKutta4(Pressure_ODE_3D, P_result, pmb->pcoord->x3v(k+1),pmb->pcoord->x3v(k), dt_runge_kutta, false, pin,pmb); 
+         rungeKutta4(Pressure_ODE_3D, &P_result, pmb->pcoord->x3v(k+1),pmb->pcoord->x3v(k), dt_runge_kutta, false, pin,pmb); 
          P_sol(k) = P_result;
 
        }
@@ -386,13 +386,13 @@ void integrate_P_ODE(MeshBlock *pmb,ParameterInput *pin,AthenaArray<Real> P_sol 
 
        Real dt_runge_kutta = (pmb->pcoord->x3v(k_trans)-0.0)/(pmb->pmy_mesh->mesh_size.nx3*10.0);
        Real P_result = P_h;
-       rungeKutta4(Pressure_ODE_3D,P_result, 0.0,pmb->pcoord->x3v(k_trans), dt_runge_kutta, true, pin,pmb); 
+       rungeKutta4(Pressure_ODE_3D,&P_result, 0.0,pmb->pcoord->x3v(k_trans), dt_runge_kutta, true, pin,pmb); 
        P_sol(k_trans) = P_result;
 
        for (int k=k_trans+1; k<=ku; k++) {
          dt_runge_kutta = (pmb->pcoord->x3v(k)-pmb->pcoord->x3v(k-1))/(10.0);
          P_result = P_sol(k-1);
-         rungeKutta4(Pressure_ODE_3D, P_result, pmb->pcoord->x2v(k-1),pmb->pcoord->x3v(k), dt_runge_kutta, true, pin,pmb); 
+         rungeKutta4(Pressure_ODE_3D, &P_result, pmb->pcoord->x2v(k-1),pmb->pcoord->x3v(k), dt_runge_kutta, true, pin,pmb); 
          P_sol(k) = P_result;
 
        }
@@ -400,14 +400,14 @@ void integrate_P_ODE(MeshBlock *pmb,ParameterInput *pin,AthenaArray<Real> P_sol 
        // now lower
        dt_runge_kutta = (pmb->pcoord->x3v(k_trans-1) - 0.0)/(pmb->pmy_mesh->mesh_size.nx3*10.0);
        P_result = P_c;
-       rungeKutta4(Pressure_ODE_3D,P_result, 0.0, pmb->pcoord->x3v(ku),  dt_runge_kutta, false,pin,pmb); 
+       rungeKutta4(Pressure_ODE_3D,&P_result, 0.0, pmb->pcoord->x3v(ku),  dt_runge_kutta, false,pin,pmb); 
        P_sol(k_trans-1) = P_result;
 
 
         for (int k=k_trans-2; k<=kl; k--) {
          dt_runge_kutta = (pmb->pcoord->x3v(k)-pmb->pcoord->x3v(k+1))/(10.0);
          P_result = P_sol(k+1);
-         rungeKutta4(Pressure_ODE_3D, P_result, pmb->pcoord->x3v(k+1),pmb->pcoord->x3v(k), dt_runge_kutta, false, pin,pmb); 
+         rungeKutta4(Pressure_ODE_3D, &P_result, pmb->pcoord->x3v(k+1),pmb->pcoord->x3v(k), dt_runge_kutta, false, pin,pmb); 
          P_sol(k) = P_result;
 
        }
@@ -422,13 +422,13 @@ void integrate_P_ODE(MeshBlock *pmb,ParameterInput *pin,AthenaArray<Real> P_sol 
        //do first step
        Real dt_runge_kutta = (pmb->pcoord->x2v(jl)-0.0)/(pmb->pmy_mesh->mesh_size.nx2*10.0);
        Real P_result = P_h;
-       rungeKutta4(Pressure_ODE_2D,P_result, 0.0,pmb->pcoord->x2v(jl), dt_runge_kutta, true, pin,pmb); 
+       rungeKutta4(Pressure_ODE_2D,&P_result, 0.0,pmb->pcoord->x2v(jl), dt_runge_kutta, true, pin,pmb); 
        P_sol(jl) = P_result;
 
        for (int j=jl+1; j<=ju; j++) {
          dt_runge_kutta = (pmb->pcoord->x2v(j)-pmb->pcoord->x2v(j-1))/(10.0);
          P_result = P_sol(j-1);
-         rungeKutta4(Pressure_ODE_2D, P_result, pmb->pcoord->x2v(j-1),pmb->pcoord->x2v(j), dt_runge_kutta, true, pin,pmb); 
+         rungeKutta4(Pressure_ODE_2D, &P_result, pmb->pcoord->x2v(j-1),pmb->pcoord->x2v(j), dt_runge_kutta, true, pin,pmb); 
          P_sol(j) = P_result;
 
        }
@@ -440,14 +440,14 @@ void integrate_P_ODE(MeshBlock *pmb,ParameterInput *pin,AthenaArray<Real> P_sol 
       //do first step
        Real dt_runge_kutta = (pmb->pcoord->x2v(ju) - 0.0)/(pmb->pmy_mesh->mesh_size.nx2*10.0);
        Real P_result = P_c;
-       rungeKutta4(Pressure_ODE_2D,P_result, 0.0, pmb->pcoord->x2v(ju),  dt_runge_kutta, false, pin,pmb); 
+       rungeKutta4(Pressure_ODE_2D,&P_result, 0.0, pmb->pcoord->x2v(ju),  dt_runge_kutta, false, pin,pmb); 
        P_sol(ju) = P_result;
 
 
         for (int j=ju-1; j<=jl; j--) {
          dt_runge_kutta = (pmb->pcoord->x2v(j)-pmb->pcoord->x2v(j+1))/(10.0);
          P_result = P_sol(j+1);
-         rungeKutta4(Pressure_ODE_2D, P_result, pmb->pcoord->x2v(j+1),pmb->pcoord->x2v(j), dt_runge_kutta, false, pin,pmb); 
+         rungeKutta4(Pressure_ODE_2D, &P_result, pmb->pcoord->x2v(j+1),pmb->pcoord->x2v(j), dt_runge_kutta, false, pin,pmb); 
          P_sol(j) = P_result;
 
        }
@@ -469,13 +469,13 @@ void integrate_P_ODE(MeshBlock *pmb,ParameterInput *pin,AthenaArray<Real> P_sol 
 
        Real dt_runge_kutta = (pmb->pcoord->x2v(j_trans)-0.0)/(pmb->pmy_mesh->mesh_size.nx2*10.0);
        Real P_result = P_h;
-       rungeKutta4(Pressure_ODE_2D,P_result, 0.0,pmb->pcoord->x2v(j_trans), dt_runge_kutta, true, pin,pmb); 
+       rungeKutta4(Pressure_ODE_2D,&P_result, 0.0,pmb->pcoord->x2v(j_trans), dt_runge_kutta, true, pin,pmb); 
        P_sol(j_trans) = P_result;
 
        for (int j=j_trans+1; j<=ju; j++) {
          dt_runge_kutta = (pmb->pcoord->x2v(j)-pmb->pcoord->x2v(j-1))/(10.0);
          P_result = P_sol(j-1);
-         rungeKutta4(Pressure_ODE_2D, P_result, pmb->pcoord->x2v(j-1),pmb->pcoord->x2v(j), dt_runge_kutta, true, pin,pmb); 
+         rungeKutta4(Pressure_ODE_2D, &P_result, pmb->pcoord->x2v(j-1),pmb->pcoord->x2v(j), dt_runge_kutta, true, pin,pmb); 
          P_sol(j) = P_result;
 
        }
@@ -483,14 +483,14 @@ void integrate_P_ODE(MeshBlock *pmb,ParameterInput *pin,AthenaArray<Real> P_sol 
        // now lower
        dt_runge_kutta = (pmb->pcoord->x2v(j_trans-1) - 0.0)/(pmb->pmy_mesh->mesh_size.nx2*10.0);
        P_result = P_c;
-       rungeKutta4(Pressure_ODE_2D,P_result, 0.0, pmb->pcoord->x2v(ju),  dt_runge_kutta, false,pin,pmb); 
+       rungeKutta4(Pressure_ODE_2D,&P_result, 0.0, pmb->pcoord->x2v(ju),  dt_runge_kutta, false,pin,pmb); 
        P_sol(j_trans-1) = P_result;
 
 
         for (int j=j_trans-2; j<=jl; j--) {
          dt_runge_kutta = (pmb->pcoord->x2v(j)-pmb->pcoord->x2v(j+1))/(10.0);
          P_result = P_sol(j+1);
-         rungeKutta4(Pressure_ODE_2D, P_result, pmb->pcoord->x2v(j+1),pmb->pcoord->x2v(j), dt_runge_kutta, false, pin,pmb); 
+         rungeKutta4(Pressure_ODE_2D, &P_result, pmb->pcoord->x2v(j+1),pmb->pcoord->x2v(j), dt_runge_kutta, false, pin,pmb); 
          P_sol(j) = P_result;
 
        }
