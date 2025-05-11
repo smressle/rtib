@@ -186,12 +186,12 @@ void Pressure_ODE_2D(Real t, Real y, bool is_top,ParameterInput *pin, MeshBlock 
       Real beta, sigma;
 
       if (is_top){
-        beta = beta_h;
-        sigma = sigma_h;
-      }
-      else{
         beta = beta_c;
         sigma = sigma_c;
+      }
+      else{
+        beta = beta_h;
+        sigma = sigma_h;
       }
       Real bracket = (
           2 / sigma +
