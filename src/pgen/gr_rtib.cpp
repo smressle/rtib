@@ -299,6 +299,7 @@ void rungeKutta4(
     while (t < t1) {
 
         fprintf(stderr,"n_loop: %d t0: %g t1: %g t: %g dt: %g \n",n_loop, t0,t1,t,dt);
+        n_loop += 1;
 
         f(t, *y, is_top, pin, pmb, &k1);
 
@@ -324,9 +325,11 @@ void rungeKutta4(
 
     else {
 
+      int n_loop = 0;
     while (t > t1) {
 
         fprintf(stderr,"n_loop: %d t0: %g t1: %g t: %g dt: %g \n",n_loop, t0,t1,t,dt);
+        n_loop += 1;
         f(t, *y, is_top, pin, pmb, &k1);
 
         yTemp = *y + dt * k1 / 2.0;
