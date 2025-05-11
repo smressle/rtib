@@ -879,7 +879,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
           Real v2 = 0;
           Real v1 = 0.0;
-          if (pcoord->x2v(j) > 0.0) v1 = shear_velocity;
+          if (pcoord->x2v(j) > 0.0) v1 = shear_velocity/2.0;
+          else v1 = -shear_velocity/2.0;
           Real v3 = 0;
 
 
@@ -1455,7 +1456,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
 
           Real v1 = 0.0;
-          if (pcoord->x3v(k) > 0.0) v1 = shear_velocity;
+          if (pcoord->x3v(k) > 0.0) v1 = shear_velocity/2.0;
+          else v1 = -shear_velocity/2.0;
 
           Real v2 = 0;
 
