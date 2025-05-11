@@ -294,7 +294,7 @@ void rungeKutta4(
 
     if (t0<t1){
 
-      int n_loop - 0;
+      int n_loop = 0;
 
     while (t < t1) {
 
