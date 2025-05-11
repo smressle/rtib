@@ -292,7 +292,14 @@ void rungeKutta4(
 
     Real dt_temp = dt;
 
+    if (t0<t1){
+
+      int n_loop - 0;
+
     while (t < t1) {
+
+        fprintf(stderr,"n_loop: %d t0: %g t1: %g t: %g dt: %g \n",n_loop, t0,t1,t,dt);
+
         f(t, *y, is_top, pin, pmb, &k1);
 
         yTemp = *y + dt * k1 / 2.0;
@@ -310,6 +317,35 @@ void rungeKutta4(
         t += dt_temp;
 
         if (t + dt_temp > t1) dt_temp = t1-t;
+
+      }
+
+    }
+
+    else {
+
+    while (t > t1) {
+
+        fprintf(stderr,"n_loop: %d t0: %g t1: %g t: %g dt: %g \n",n_loop, t0,t1,t,dt);
+        f(t, *y, is_top, pin, pmb, &k1);
+
+        yTemp = *y + dt * k1 / 2.0;
+        f(t + dt_temp / 2.0, yTemp, is_top, pin, pmb, &k2);
+
+        yTemp = *y + dt * k2 / 2.0;
+        f(t + dt_temp / 2.0, yTemp, is_top, pin, pmb, &k3);
+
+        yTemp = *y + dt * k3;
+        f(t + dt_temp, yTemp, is_top, pin, pmb, &k4);
+
+        // Update y
+        *y += dt_temp / 6.0 * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
+
+        t += dt_temp;
+
+        if (t + dt_temp < t1) dt_temp = t1-t;
+
+      }
 
     }
 }
