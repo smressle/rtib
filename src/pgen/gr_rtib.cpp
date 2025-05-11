@@ -427,7 +427,7 @@ void integrate_P_ODE(int il, int iu, int jl, int ju, int kl, int ku, AthenaArray
        // now lower
        dt_runge_kutta = (x_coord(k_trans-1) - 0.0)/(pmb->pmy_mesh->mesh_size.nx3*2.0);
        P_result = P_c;
-       rungeKutta4(Pressure_ODE_3D,&P_result, 0.0, x_coord(ku),  dt_runge_kutta, false,pin,pmb); 
+       rungeKutta4(Pressure_ODE_3D,&P_result, 0.0, x_coord(k_trans-1),  dt_runge_kutta, false,pin,pmb); 
        P_sol(k_trans-1) = P_result;
 
 
