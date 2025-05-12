@@ -1028,10 +1028,10 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       // Real Bz_slope = (Bz_rotation_region_ymax - Bz_rotation_region_ymin) / ( length_of_rotation_region) ; 
 
       
-      for (int k=ks; k<=ke; k++) {
-        for (int j=js; j<=je; j++) {
+      for (int k=kl; k<=ku; k++) {
+        for (int j=jl; j<=ju; j++) {
           pcoord->Face1Metric(k, j, il, iu+1, g, gi);
-          for (int i=is; i<=ie+1; i++) {
+          for (int i=il; i<=iu+1; i++) {
 
             Real exp_arg_term,Bmag;
 
@@ -1159,17 +1159,17 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
         }
       }
     
-      for (int k=ks; k<=ke; k++) {
-        for (int j=js; j<=je+1; j++) {
-          for (int i=is; i<=ie; i++) {
+      for (int k=kl; k<=ku; k++) {
+        for (int j=jl; j<=ju+1; j++) {
+          for (int i=il; i<=iu; i++) {
             pfield->b.x2f(k,j,i) = 0.0;
           }
         }
       }
-      for (int k=ks; k<=ke; k++) {
-        for (int j=js; j<=je; j++) {
+      for (int k=kl; k<=ku; k++) {
+        for (int j=jl; j<=ju; j++) {
           pcoord->Face3Metric(k, j, il, iu, g, gi);
-          for (int i=is; i<=ie; i++) {
+          for (int i=il; i<=iu; i++) {
 
             Real Bmag, exp_arg_term;
 
@@ -1380,9 +1380,9 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
         }
       }
       if (NON_BAROTROPIC_EOS) {
-        for (int k=ks; k<=ke; k++) {
-          for (int j=js; j<=je; j++) {
-            for (int i=is; i<=ie; i++) {
+        for (int k=kl; k<=ku; k++) {
+          for (int j=jl; j<=ju; j++) {
+            for (int i=il; i<=iu; i++) {
               // phydro->u(IEN,k,j,i) += 0.5*b0*b0;
             }
           }
@@ -1561,10 +1561,10 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       Real Bx, By,Bz;
       // angle = (angle/180.)*PI;
 
-      for (int k=ks; k<=ke; k++) {
-        for (int j=js; j<=je; j++) {
+      for (int k=kl; k<=ku; k++) {
+        for (int j=jl; j<=ju; j++) {
           pcoord->Face1Metric(k, j, il, iu+1, g, gi);
-          for (int i=is; i<=ie+1; i++) {
+          for (int i=il; i<=iu+1; i++) {
 
             Real exp_arg_term,Bmag;
 
@@ -1726,10 +1726,10 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           }
         }
       }
-      for (int k=ks; k<=ke; k++) {
-        for (int j=js; j<=je+1; j++) {
+      for (int k=kl; k<=ku; k++) {
+        for (int j=jl; j<=ju+1; j++) {
           pcoord->Face2Metric(k, j, il, iu+1, g, gi);
-          for (int i=is; i<=ie; i++) {
+          for (int i=il; i<=iu; i++) {
 
 
             Real exp_arg_term,Bmag;
@@ -1893,17 +1893,17 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           }
         }
       }
-      for (int k=ks; k<=ke+1; k++) {
-        for (int j=js; j<=je; j++) {
-          for (int i=is; i<=ie; i++) {
+      for (int k=kl; k<=ku+1; k++) {
+        for (int j=jl; j<=ju; j++) {
+          for (int i=il; i<=iu; i++) {
             pfield->b.x3f(k,j,i) = 0.0;
           }
         }
       }
       if (NON_BAROTROPIC_EOS) {
-        for (int k=ks; k<=ke; k++) {
-          for (int j=js; j<=je; j++) {
-            for (int i=is; i<=ie; i++) {
+        for (int k=kl; k<=ku; k++) {
+          for (int j=jl; j<=ju; j++) {
+            for (int i=il; i<=iu; i++) {
               // phydro->u(IEN,k,j,i) += 0.5*b0*b0;
             }
           }
