@@ -622,9 +622,31 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
 
 void MeshBlock::InitUserMeshBlockData(ParameterInput *pin) {
   // Allocate space for scratch arrays
-  AllocateRealUserMeshBlockDataField(2);
+  AllocateRealUserMeshBlockDataField(3);
   ruser_meshblock_data[0].NewAthenaArray(NMETRIC, ie + NGHOST + 1);
   ruser_meshblock_data[1].NewAthenaArray(NMETRIC, ie + NGHOST + 1);
+  if (block_size.nx3==1) ruser_meshblock_data[2].NewAthenaArray(je + NGHOST + 1);
+  else ruser_meshblock_data[2].NewAthenaArray(ke + NGHOST + 1);
+
+
+  int il = is - NGHOST;
+  int iu = ie + NGHOST;
+  int jl = js;
+  int ju = je;
+  if (block_size.nx2 > 1) {
+    jl -= (NGHOST);
+    ju += (NGHOST);
+  }
+  int kl = ks;
+  int ku = ke;
+  if (block_size.nx3 > 1) {
+    kl -= (NGHOST);
+    ku += (NGHOST);
+  }
+
+  if (block_size.nx3==1)  integrate_P_ODE(il,iu,jl,ju,kl,ku,pcoord->x2v,this,pin,ruser_meshblock_data[2]);
+  else integrate_P_ODE(il,iu,jl,ju,kl,ku,pcoord->x3v,this,pin,ruser_meshblock_data[2]);
+
 
 
   AllocateUserOutputVariables(3);
@@ -642,6 +664,7 @@ Real vsq(MeshBlock *pmb, int iout)
 
   AthenaArray<Real> &g = pmb->ruser_meshblock_data[0];
   AthenaArray<Real> &gi = pmb->ruser_meshblock_data[1];
+
 
   for(int k=ks; k<=ke; k++) {
     for(int j=js; j<=je; j++) {
@@ -829,6 +852,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
   // Prepare scratch arrays
   AthenaArray<Real> &g = ruser_meshblock_data[0];
   AthenaArray<Real> &gi = ruser_meshblock_data[1];
+  AthenaArray<Real> &P_sol = ruser_meshblock_data[2];
+
 
   // std::int64_t iseed = -1;
   std::int64_t iseed = -1 - gid;
@@ -852,16 +877,12 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
     grav_acc = pin->GetReal("problem", "grav_acc");
     Real y0 = pin->GetReal("problem", "y0");
 
-    AthenaArray<Real> P_sol;
-    P_sol.NewAthenaArray(ju-jl+1);
-    integrate_P_ODE(il,iu,jl,ju,kl,ku,pcoord->x2v,this,pin,P_sol );
     for (int k=kl; k<=ku; k++) {
       for (int j=jl; j<=ju; j++) {
         pcoord->CellMetric(k, j, il, iu, g, gi);
         for (int i=il; i<=iu; i++) {
-          Real dh = 1.0;
-          Real dc = dh * drat;
-          Real den=1.0;
+
+          Real den=rho_h;
           if (pcoord->x2v(j) > 0.0) den *= drat;
 
           // Real Phi_const = Phi/
@@ -1391,7 +1412,6 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           }
         }
       }
-      P_sol.DeleteAthenaArray();
     }
 
     // 3D PROBLEM ----------------------------------------------------------------
@@ -1400,19 +1420,13 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
     grav_acc = pin->GetReal("problem", "grav_acc");
     Real z0 = pin->GetReal("problem", "z0");
 
-
-    AthenaArray<Real> P_sol;
-    P_sol.NewAthenaArray(ku-kl+1);
-    integrate_P_ODE(il,iu,jl,ju,kl,ku,pcoord->x3v,this,pin,P_sol );
     for (int k=kl; k<=ku; k++) {
       for (int j=jl; j<=ju; j++) {
         pcoord->CellMetric(k, j, il, iu, g, gi);
         for (int i=il; i<=iu; i++) {
 
           // Real L = pmy_mesh->mesh_size.x3max - pmy_mesh->mesh_size.x3min;
-          Real den=1.0;
-          Real dh = 1.0;
-          Real dc = dh * drat;
+          Real den=rho_h;
           if (pcoord->x3v(k) > 0.0) den *= drat;
 
 
@@ -1915,7 +1929,6 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       }
     }
 
-    P_sol.DeleteAthenaArray();
   } // end of 3D initialization
 
 
