@@ -1646,7 +1646,7 @@ void ProjectPressureInnerX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
     for (int k=kl; k<=ku; ++k) {
       for (int j=1; j<=ngh; ++j) {
 // #pragma omp simd
-          pmb->pcoord->CellMetric(k, jl-j, il, iu, g, gi);
+          pco->CellMetric(k, jl-j, il, iu, g, gi);
           for (int i=il; i<=iu; ++i) {
           Real den=rho_h;
 
@@ -1702,7 +1702,7 @@ void ProjectPressureInnerX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
     for (int k=kl; k<=ku; ++k) {
       for (int j=1; j<=ngh; ++j) {
 // #pragma omp simd
-        pmb->pcoord->Face1Metric(k, jl-j, il, iu+1, g, gi);
+        pco->Face1Metric(k, jl-j, il, iu+1, g, gi);
         for (int i=il; i<=iu+1; ++i) {
 
               Real Bmag =  std::sqrt(P_sol(jl-j)/beta_h*2.0);
@@ -1791,7 +1791,7 @@ void ProjectPressureInnerX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
     for (int k=kl; k<=ku; ++k) {
       for (int j=1; j<=ngh; ++j) {
 // #pragma omp simd
-        pmb->pcoord->Face3Metric(k, jl-j, il, iu, g, gi);
+        pco->Face3Metric(k, jl-j, il, iu, g, gi);
         for (int i=il; i<=iu; ++i) {
 
             Real Bmag =  std::sqrt(P_sol(jl-j)/beta_h*2.0);
