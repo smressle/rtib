@@ -1044,6 +1044,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
               // Bmag = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const));
               // Bmag = Bc * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
 
+
               Bmag =  std::sqrt(P_sol(j)/beta_c*2.0);
 
             }
@@ -2062,18 +2063,18 @@ void ProjectPressureInnerX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
 
     // Do nothing
 
-//     // copy face-centered magnetic fields into ghost zones, reflecting b2
-//   if (MAGNETIC_FIELDS_ENABLED) {
+    // copy face-centered magnetic fields into ghost zones, reflecting b2
+  if (MAGNETIC_FIELDS_ENABLED) {
 
-//     for (int k=kl; k<=ku+1; ++k) {
-//       for (int j=1; j<=ngh; ++j) {
-// #pragma omp simd
-//         for (int i=il; i<=iu; ++i) {
-//          fprintf(stderr,"B3 in boundary: %g i j k : %d %d %d  \n ", b.x3f(k,(jl-j),i), i, jl-j, k );
-//         }
-//       }
-//     }
-//   }
+    for (int k=kl; k<=ku+1; ++k) {
+      for (int j=1; j<=ngh; ++j) {
+#pragma omp simd
+        for (int i=il; i<=iu; ++i) {
+         fprintf(stderr,"B3 in boundary: %g i j k : %d %d %d  \n ", b.x3f(k,(jl-j),i), i, jl-j, k );
+        }
+      }
+    }
+  }
 
 
   return;
