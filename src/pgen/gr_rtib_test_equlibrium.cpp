@@ -1929,7 +1929,7 @@ void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
           pmb->pcoord->CellMetric(k, ju+j, il, iu, g, gi);
           for (int i=il; i<=iu; ++i) {
 
-          Real den=rho_h;
+          Real den=rho_c;
 
           Real v2 = 0;
           Real v1 = 0.0;
