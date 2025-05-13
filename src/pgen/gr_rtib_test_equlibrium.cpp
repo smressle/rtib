@@ -1639,8 +1639,8 @@ void ProjectPressureInnerX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
   AthenaArray<Real> &P_sol = pmb->ruser_meshblock_data[2];
   AthenaArray<Real> g, gi;
 
-  g.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 1);
-  gi.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 1);
+  g.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 2);
+  gi.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 2);
 
 
     for (int k=kl; k<=ku; ++k) {
@@ -1919,8 +1919,8 @@ void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
  AthenaArray<Real> &P_sol = pmb->ruser_meshblock_data[2];
 
 
-  g.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 1);
-  gi.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 1);
+  g.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 2);
+  gi.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 2);
 
 
     for (int k=kl; k<=ku; ++k) {
