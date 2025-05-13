@@ -1805,7 +1805,7 @@ void ProjectPressureInnerX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
             if (k<=ku){
               uu1 = prim(IVX,k,jl-j,i);
               uu2 = prim(IVY,k,jl-j,i);
-              uu3 = prim(IVZ,k,jl=j,i);
+              uu3 = prim(IVZ,k,jl-j,i);
 
             }
             else{

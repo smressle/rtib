@@ -762,7 +762,7 @@ void GRUser::Face2Metric(const int k, const int j, const int il, const int iu,
 void GRUser::Face3Metric(const int k, const int j, const int il, const int iu,
                          AthenaArray<Real> &g, AthenaArray<Real> &g_inv) {
   for (int n = 0; n < NMETRIC; ++n) {
-// #pragma omp simd
+#pragma omp simd
     for (int i=il; i<=iu; ++i) {
       g(n,i) = metric_face3_kji_(0,n,k,j,i);
       g_inv(n,i) = metric_face3_kji_(1,n,k,j,i);
