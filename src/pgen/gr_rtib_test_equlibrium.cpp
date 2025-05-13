@@ -621,8 +621,8 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
 void MeshBlock::InitUserMeshBlockData(ParameterInput *pin) {
   // Allocate space for scratch arrays
   AllocateRealUserMeshBlockDataField(2);
-  ruser_meshblock_data[0].NewAthenaArray(NMETRIC, ie + NGHOST + 1);
-  ruser_meshblock_data[1].NewAthenaArray(NMETRIC, ie + NGHOST + 1);
+  ruser_meshblock_data[0].NewAthenaArray(NMETRIC, ie + NGHOST + 2);
+  ruser_meshblock_data[1].NewAthenaArray(NMETRIC, ie + NGHOST + 2);
 
 
   AllocateUserOutputVariables(3);
