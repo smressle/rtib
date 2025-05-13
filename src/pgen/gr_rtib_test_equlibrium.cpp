@@ -1102,7 +1102,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
             // Calculate normal-frame Lorentz factor
 
-            Real uu, uu1, uu3;
+            Real uu1, uu2, uu3;
             if (i<=iu){
               uu1 = phydro->w(IVX,k,j,i);
               uu2 = phydro->w(IVY,k,j,i);
