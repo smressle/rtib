@@ -1609,9 +1609,9 @@ void TimeIntegratorTaskList::StartupTaskList(MeshBlock *pmb, int stage) {
 
     if (MAGNETIC_FIELDS_ENABLED) { // MHD
       Field *pf = pmb->pfield;
-      // pf->b1.x1f.ZeroClear();
-      // pf->b1.x2f.ZeroClear();
-      // pf->b1.x3f.ZeroClear();
+      pf->b1.x1f.ZeroClear();
+      pf->b1.x2f.ZeroClear();
+      pf->b1.x3f.ZeroClear();
       if (integrator == "ssprk5_4") {
         std::stringstream msg;
         msg << "### FATAL ERROR in TimeIntegratorTaskList::StartupTaskList\n"
