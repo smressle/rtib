@@ -2091,6 +2091,17 @@ void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
                             int il, int iu, int jl, int ju, int kl, int ku, int ngh) {
 
 
+      for (int k=kl; k<=ku+1; ++k) {
+      for (int j=1; j<=ngh; ++j) {
+#pragma omp simd
+        for (int i=il; i<=iu; ++i) {
+          fprintf(stderr,"B3 in boundary: %g i j k : %d %d %d  \n ", b.x3f(k,(ju-j+1),i), i, ju-j+1, k );
+          // b.x3f(k,(ju+j  ),i) =  b.x3f(k,(ju-j+1),i);
+        }
+      }
+    }
+
+
   // do nothing
   return;
 }
