@@ -1868,8 +1868,8 @@ void ProjectPressureInnerX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
             b.x3f(k,jl-j,i)   =  Bz;
             b.x3f(k+1,jl-j,i) = Bz;
 
-            if (std::isnan(b.x3f(k,jl-j,i))){
-              fprintf(stderr,"B3 NAN in inner boundary: ijk: %d %d %d \n b: %g %g  Bmag: %g b_sq: %g \n bmu: %g %g %g %g \n umu: %g %g %g %g \n" i,j,k, b.x3f(k,jl-j,i), b.x3f(k+1,jl-j,i), Bmag, b_sq, b0,b1,b2,b3,u0,u1,u2,u3);
+            if (std::isnan(b.x3f(k,jl-j,i))) {
+              fprintf(stderr,"B3 NAN in inner boundary: ijk: %d %d %d \n b: %g %g  Bmag: %g b_sq: %g \n bmu: %g %g %g %g \n umu: %g %g %g %g \n", i,j,k, b.x3f(k,jl-j,i), b.x3f(k+1,jl-j,i), Bmag, b_sq, b0,b1,b2,b3,u0,u1,u2,u3);
             }
 
 
