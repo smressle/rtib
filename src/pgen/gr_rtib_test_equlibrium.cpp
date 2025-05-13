@@ -1389,7 +1389,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
             // pfield->b.x3f(k,j,i) = b3 * u0 - b0 * u3;
             pfield->b.x3f(k,j,i) = pfield->b1.x3f(k,j,i) = Bz;
-            pfield->b.x3f(k+1,j,i) = pfield->b1.x3f(k+1,j,i) Bz;
+            pfield->b.x3f(k+1,j,i) = pfield->b1.x3f(k+1,j,i) = Bz;
 
 
             // if (std::isnan(pfield->b.x3f(k,j,i))){
