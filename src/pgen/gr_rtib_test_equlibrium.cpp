@@ -1880,17 +1880,17 @@ void ProjectPressureInnerX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
     // Do nothing
 
     // copy face-centered magnetic fields into ghost zones, reflecting b2
-//   if (MAGNETIC_FIELDS_ENABLED) {
+  if (MAGNETIC_FIELDS_ENABLED) {
 
-//     for (int k=kl; k<=ku+1; ++k) {
-//       for (int j=1; j<=ngh; ++j) {
-// #pragma omp simd
-//         for (int i=il; i<=iu; ++i) {
-//          fprintf(stderr,"B3 in boundary: %g i j k : %d %d %d  \n ", b.x3f(k,(jl-j),i), i, jl-j, k );
-//         }
-//       }
-//     }
-//   }
+    for (int k=kl; k<=ku+1; ++k) {
+      for (int j=1; j<=ngh; ++j) {
+#pragma omp simd
+        for (int i=il; i<=iu; ++i) {
+         fprintf(stderr,"B3 in inner boundary: %g i j k : %d %d %d  \n ", b.x3f(k,(jl-j),i), i, jl-j, k );
+        }
+      }
+    }
+  }
 
 
   return;
@@ -2157,15 +2157,15 @@ void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
 
 
 
-//       for (int k=kl; k<=ku+1; ++k) {
-//       for (int j=1; j<=ngh; ++j) {
-// #pragma omp simd
-//         for (int i=il; i<=iu; ++i) {
-//           fprintf(stderr,"B3 in boundary: %g i j k : %d %d %d  \n ", b.x3f(k,(ju-j+1),i), i, ju-j+1, k );
-//           // b.x3f(k,(ju+j  ),i) =  b.x3f(k,(ju-j+1),i);
-//         }
-//       }
-//     }
+      for (int k=kl; k<=ku+1; ++k) {
+      for (int j=1; j<=ngh; ++j) {
+#pragma omp simd
+        for (int i=il; i<=iu; ++i) {
+          fprintf(stderr,"B3 in outer boundary: %g i j k : %d %d %d  \n ", b.x3f(k,(ju-j+1),i), i, ju-j+1, k );
+          // b.x3f(k,(ju+j  ),i) =  b.x3f(k,(ju-j+1),i);
+        }
+      }
+    }
 
 
   // do nothing
