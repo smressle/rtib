@@ -913,7 +913,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
           den = P_sol(j)/press_over_rho_interface;
 
-          phydro->w(IDN,k,j,i) = den;
+          phydro->w(IDN,k,j,i) =  phydro->w1(IDN,k,j,i) = den;
 
 
           // u^\mu u^\nu g_\mu \nu = -1 
@@ -939,11 +939,11 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           Real uu2 = u2 - gi(I02,i) / gi(I00,i) * u0;
           Real uu3 = u3 - gi(I03,i) / gi(I00,i) * u0;
 
-          phydro->w(IM1,k,j,i) = uu1;
-          phydro->w(IM2,k,j,i) = uu2;
-          phydro->w(IM3,k,j,i) = uu3;
+          phydro->w(IM1,k,j,i) =  phydro->w1(IM1,k,j,i) = uu1;
+          phydro->w(IM2,k,j,i) =  phydro->w1(IM2,k,j,i) = uu2;
+          phydro->w(IM3,k,j,i) =  phydro->w1(IM3,k,j,i) = uu3;
           if (NON_BAROTROPIC_EOS) {
-            phydro->w(IEN,k,j,i) = P_sol(j);
+            phydro->w(IEN,k,j,i) = phydro->w1(IEN,k,j,i)  = P_sol(j);
             // phydro->w(IEN,k,j,i) = (press_over_rho_interface*den + grav_acc*den*(pcoord->x2v(j)));
             
           }
@@ -1164,7 +1164,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             Bz = Bz * Bmag/std::sqrt(b_sq);
 
 
-            pfield->b.x1f(k,j,i) = Bx;
+            pfield->b.x1f(k,j,i) = pfield->b1.x1f(k,j,i) = Bx;
           }
         }
       }
@@ -1388,8 +1388,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
 
             // pfield->b.x3f(k,j,i) = b3 * u0 - b0 * u3;
-            pfield->b.x3f(k,j,i) = Bz;
-            pfield->b.x3f(k+1,j,i) = Bz;
+            pfield->b.x3f(k,j,i) = pfield->b1.x3f(k,j,i) = Bz;
+            pfield->b.x3f(k+1,j,i) = pfield->b1.x3f(k+1,j,i) Bz;
 
 
             // if (std::isnan(pfield->b.x3f(k,j,i))){
@@ -1469,7 +1469,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           Real v3=0.0;
 
 
-          phydro->w(IDN,k,j,i) = den;
+          phydro->w(IDN,k,j,i) = phydro->w1(IDN,k,j,i) = den;
 
 
           Real v1 = 0.0;
@@ -1504,13 +1504,13 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           // Real u3 = v3 * Lorentz;
 
           
-          phydro->w(IM1,k,j,i) = uu1;
-          phydro->w(IM2,k,j,i) = uu2;
-          phydro->w(IM3,k,j,i) = uu3;
+          phydro->w(IM1,k,j,i) = phydro->w1(IM1,k,j,i) = uu1;
+          phydro->w(IM2,k,j,i) = phydro->w1(IM2,k,j,i) = uu2;
+          phydro->w(IM3,k,j,i) = phydro->w1(IM3,k,j,i) = uu3;
 
 
           if (NON_BAROTROPIC_EOS) {
-            phydro->w(IPR,k,j,i) =  P_sol(k);
+            phydro->w(IPR,k,j,i) =  phydro->w1(IPR,k,j,i) = P_sol(k);
 
             // phydro->w(IPR,k,j,i) =  press_over_rho_interface*den + grav_acc*den*(pcoord->x3v(k));
           }
@@ -1752,7 +1752,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             //now convert back to three vector (Equation 17 Gammie+ 2003)
    
             // pfield->b.x1f(k,j,i) = b1 * u0 - b0 * u1;
-            pfield->b.x1f(k,j,i) = Bx;
+            pfield->b.x1f(k,j,i) = pfield->b1.x1f(k,j,i) = Bx;
           }
         }
       }
@@ -1928,7 +1928,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
 
             // pfield->b.x2f(k,j,i) = b2 * u0 - b0 * u2;
-            pfield->b.x2f(k,j,i) = By;
+            pfield->b.x2f(k,j,i) = pfield->b1.x2f(k,j,i) = By;
 
           }
         }
@@ -1936,7 +1936,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       for (int k=kl; k<=ku+1; k++) {
         for (int j=jl; j<=ju; j++) {
           for (int i=il; i<=iu; i++) {
-            pfield->b.x3f(k,j,i) = 0.0;
+            pfield->b.x3f(k,j,i) = pfield->b1.x3f(k,j,i) = 0.0;
           }
         }
       }
