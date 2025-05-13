@@ -1688,10 +1688,21 @@ void ProjectPressureInnerX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
 
   // copy face-centered magnetic fields into ghost zones, reflecting b2
   if (MAGNETIC_FIELDS_ENABLED) {
+
+      Real Bin = ( Bh * Bc * std::sin(theta_rot) ) / std::sqrt( SQR(Bh) + SQR(Bc) + 2.0*Bh*Bc*std::cos(theta_rot) ) ;
+      Real Bhx = Bin;
+      Real Bcx = - Bhx;
+
+
+      Real sign_flip = 1.0;
+      if (std::cos(theta_rot)<0.0) sign_flip=-1.0;
+      Real Bhz = sign_flip * std::sqrt( SQR(Bh) - SQR(Bin) );
+      Real Bcz =             std::sqrt( SQR(Bc) - SQR(Bin) );
+
     for (int k=kl; k<=ku; ++k) {
       for (int j=1; j<=ngh; ++j) {
 // #pragma omp simd
-        pcoord->Face1Metric(k, jl-j, il, iu+1, g, gi);
+        pmb->pcoord->Face1Metric(k, jl-j, il, iu+1, g, gi);
         for (int i=il; i<=iu+1; ++i) {
 
               Real Bmag =  std::sqrt(P_sol(jl-j)/beta_h*2.0);
@@ -1950,6 +1961,16 @@ void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
 
   // copy face-centered magnetic fields into ghost zones, reflecting b2
   if (MAGNETIC_FIELDS_ENABLED) {
+      Real Bin = ( Bh * Bc * std::sin(theta_rot) ) / std::sqrt( SQR(Bh) + SQR(Bc) + 2.0*Bh*Bc*std::cos(theta_rot) ) ;
+      Real Bhx = Bin;
+      Real Bcx = - Bhx;
+
+
+      Real sign_flip = 1.0;
+      if (std::cos(theta_rot)<0.0) sign_flip=-1.0;
+      Real Bhz = sign_flip * std::sqrt( SQR(Bh) - SQR(Bin) );
+      Real Bcz =             std::sqrt( SQR(Bc) - SQR(Bin) );
+
     for (int k=kl; k<=ku; ++k) {
       for (int j=1; j<=ngh; ++j) {
 // #pragma omp simd
