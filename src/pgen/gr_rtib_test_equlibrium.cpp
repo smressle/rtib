@@ -1791,7 +1791,7 @@ void ProjectPressureInnerX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
     for (int k=kl; k<=ku; ++k) {
       for (int j=1; j<=ngh; ++j) {
 // #pragma omp simd
-        pcoord->Face3Metric(k, jl-j, il, iu, g, gi);
+        pmb->pcoord->Face3Metric(k, jl-j, il, iu, g, gi);
         for (int i=il; i<=iu; ++i) {
 
             Real Bmag =  std::sqrt(P_sol(jl-j)/beta_h*2.0);
@@ -1910,6 +1910,9 @@ void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
 
  AthenaArray<Real> g,gi;
 
+AthenaArray<Real> &P_sol = pmb->ruser_meshblock_data[2];
+
+
   g.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 1);
   gi.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 1);
 
@@ -1974,7 +1977,7 @@ void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
     for (int k=kl; k<=ku; ++k) {
       for (int j=1; j<=ngh; ++j) {
 // #pragma omp simd
-        pcoord->Face1Metric(k, ju+j, il, iu+1, g, gi);
+        pmb->pcoord->Face1Metric(k, ju+j, il, iu+1, g, gi);
         for (int i=il; i<=iu+1; ++i) {
 
               Real Bmag =  std::sqrt(P_sol(ju+j)/beta_c*2.0);
@@ -2063,7 +2066,7 @@ void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
     for (int k=kl; k<=ku+1; ++k) {
       for (int j=1; j<=ngh; ++j) {
 // #pragma omp simd
-        pcoord->Face3Metric(k, ju+j, il, iu, g, gi);
+        pmb->pcoord->Face3Metric(k, ju+j, il, iu, g, gi);
         for (int i=il; i<=iu; ++i) {
 
             Real Bmag =  std::sqrt(P_sol(ju+j)/beta_c*2.0);
