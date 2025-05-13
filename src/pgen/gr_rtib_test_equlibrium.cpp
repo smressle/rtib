@@ -621,10 +621,10 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
 void MeshBlock::InitUserMeshBlockData(ParameterInput *pin) {
   // Allocate space for scratch arrays
   AllocateRealUserMeshBlockDataField(3);
-  ruser_meshblock_data[0].NewAthenaArray(NMETRIC, ie + NGHOST + 1);
-  ruser_meshblock_data[1].NewAthenaArray(NMETRIC, ie + NGHOST + 1);
-  if (block_size.nx3==1) ruser_meshblock_data[2].NewAthenaArray(je + NGHOST + 1);
-  else ruser_meshblock_data[2].NewAthenaArray(ke + NGHOST + 1);
+  ruser_meshblock_data[0].NewAthenaArray(NMETRIC, ie + NGHOST + 2);
+  ruser_meshblock_data[1].NewAthenaArray(NMETRIC, ie + NGHOST + 2);
+  if (block_size.nx3==1) ruser_meshblock_data[2].NewAthenaArray(je + NGHOST + 2);
+  else ruser_meshblock_data[2].NewAthenaArray(ke + NGHOST + 2);
 
 
   int il = is - NGHOST;
