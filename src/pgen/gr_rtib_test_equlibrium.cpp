@@ -1101,9 +1101,18 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
 
             // Calculate normal-frame Lorentz factor
-            Real uu1 = phydro->w(IVX,k,j,i);
-            Real uu2 = phydro->w(IVY,k,j,i);
-            Real uu3 = phydro->w(IVZ,k,j,i);
+
+            Real uu, uu1, uu3;
+            if (i<=iu){
+              uu1 = phydro->w(IVX,k,j,i);
+              uu2 = phydro->w(IVY,k,j,i);
+              uu3 = phydro->w(IVZ,k,j,i);
+            }
+            else{
+              uu1 = phydro->w(IVX,k,j,iu);
+              uu2 = phydro->w(IVY,k,j,iu);
+              uu3 = phydro->w(IVZ,k,j,iu);
+            }
             Real tmp = g(I11,i) * SQR(uu1) + 2.0 * g(I12,i) * uu1 * uu2
                 + 2.0 * g(I13,i) * uu1 * uu3 + g(I22,i) * SQR(uu2)
                 + 2.0 * g(I23,i) * uu2 * uu3 + g(I33,i) * SQR(uu3);
@@ -1256,9 +1265,19 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             By = 0;
 
                         // Calculate normal-frame Lorentz factor
-            Real uu1 = phydro->w(IVX,k,j,i);
-            Real uu2 = phydro->w(IVY,k,j,i);
-            Real uu3 = phydro->w(IVZ,k,j,i);
+            Real uu1, uu2, uu3;
+            if (k<=ku){
+              uu1 = phydro->w(IVX,k,j,i);
+              uu2 = phydro->w(IVY,k,j,i);
+              uu3 = phydro->w(IVZ,k,j,i);
+
+            }
+            else{
+              uu1 = phydro->w(IVX,ku,j,i);
+              uu2 = phydro->w(IVY,ku,j,i);
+              uu3 = phydro->w(IVZ,ku,j,i);
+            }
+
             Real tmp = g(I11,i) * SQR(uu1) + 2.0 * g(I12,i) * uu1 * uu2
                 + 2.0 * g(I13,i) * uu1 * uu3 + g(I22,i) * SQR(uu2)
                 + 2.0 * g(I23,i) * uu2 * uu3 + g(I33,i) * SQR(uu3);
@@ -1641,9 +1660,19 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             Bz = 0.0;
 
             // Calculate normal-frame Lorentz factor
-            Real uu1 = phydro->w(IVX,k,j,i);
-            Real uu2 = phydro->w(IVY,k,j,i);
-            Real uu3 = phydro->w(IVZ,k,j,i);
+
+            Real uu1, uu2, uu3;
+            if (i<=iu){
+              uu1 = phydro->w(IVX,k,j,i);
+              uu2 = phydro->w(IVY,k,j,i);
+              uu3 = phydro->w(IVZ,k,j,i);
+            }
+            else{
+              uu1 = phydro->w(IVX,k,j,iu);
+              uu2 = phydro->w(IVY,k,j,iu);
+              uu3 = phydro->w(IVZ,k,j,iu);      
+            }
+
             Real tmp = g(I11,i) * SQR(uu1) + 2.0 * g(I12,i) * uu1 * uu2
                 + 2.0 * g(I13,i) * uu1 * uu3 + g(I22,i) * SQR(uu2)
                 + 2.0 * g(I23,i) * uu2 * uu3 + g(I33,i) * SQR(uu3);
@@ -1808,9 +1837,19 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
 
             // Calculate normal-frame Lorentz factor
-            Real uu1 = phydro->w(IVX,k,j,i);
-            Real uu2 = phydro->w(IVY,k,j,i);
-            Real uu3 = phydro->w(IVZ,k,j,i);
+            Real uu1, uu2, uu3;
+            if (j<=ju){
+              uu1 = phydro->w(IVX,k,j,i);
+              uu2 = phydro->w(IVY,k,j,i);
+              uu3 = phydro->w(IVZ,k,j,i);
+            }
+            else{
+              uu1 = phydro->w(IVX,k,ju,i);
+              uu2 = phydro->w(IVY,k,ju,i);
+              uu3 = phydro->w(IVZ,k,ju,i);
+            }
+
+
             Real tmp = g(I11,i) * SQR(uu1) + 2.0 * g(I12,i) * uu1 * uu2
                 + 2.0 * g(I13,i) * uu1 * uu3 + g(I22,i) * SQR(uu2)
                 + 2.0 * g(I23,i) * uu2 * uu3 + g(I33,i) * SQR(uu3);
