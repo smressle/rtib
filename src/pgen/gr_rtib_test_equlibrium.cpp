@@ -1987,8 +1987,8 @@ void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
         for (int i=il; i<=iu+1; ++i) {
 
               Real Bmag =  std::sqrt(P_sol(ju+j)/beta_c*2.0);
-              Real Bx = Bhx * Bmag/Bh;
-              Real Bz = Bhz * Bmag/Bh;
+              Real Bx = Bcx * Bmag/Bc;
+              Real Bz = Bcz * Bmag/Bc;
               Real By = 0;
 
 
@@ -2077,8 +2077,8 @@ void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
 
             Real Bmag =  std::sqrt(P_sol(ju+j)/beta_c*2.0);
 
-            Real Bx = Bhx * Bmag/Bh;
-            Real Bz = Bhz * Bmag/Bh;
+            Real Bx = Bcx * Bmag/Bc;
+            Real Bz = Bcz * Bmag/Bc;
             Real By = 0;
 
             // Calculate normal-frame Lorentz factor
