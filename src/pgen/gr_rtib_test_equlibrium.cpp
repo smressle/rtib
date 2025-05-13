@@ -871,10 +871,10 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
   if (block_size.nx3 == 1) {
     grav_acc = pin->GetReal("problem", "grav_acc");
     Real y0 = pin->GetReal("problem", "y0");
-    for (int k=kl; k<=ku; k++) {
-      for (int j=jl; j<=ju; j++) {
+    for (int k=ks; k<=ke; k++) {
+      for (int j=js; j<=je; j++) {
         pcoord->CellMetric(k, j, il, iu, g, gi);
-        for (int i=il; i<=iu; i++) {
+        for (int i=is; i<=ie; i++) {
 
           Real den=rho_h;
           if (pcoord->x2v(j) > 0.0) den *= drat;
@@ -952,10 +952,10 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       Real Bx, Bz,By;
 
       
-      for (int k=kl; k<=ku; k++) {
-        for (int j=jl; j<=ju; j++) {
+      for (int k=ks; k<=ke; k++) {
+        for (int j=js; j<=je; j++) {
           pcoord->Face1Metric(k, j, il, iu+1, g, gi);
-          for (int i=il; i<=iu+1; i++) {
+          for (int i=is; i<=ie+1; i++) {
 
             Real exp_arg_term,Bmag;
 
@@ -1059,22 +1059,22 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             Bz = Bz * Bmag/std::sqrt(b_sq);
 
 
-            pfield->b.x1f(k,j,i) = pfield->b1.x1f(k,j,i) = Bx;
+            pfield->b.x1f(k,j,i) =  Bx;
           }
         }
       }
     
-      for (int k=kl; k<=ku; k++) {
-        for (int j=jl; j<=ju+1; j++) {
-          for (int i=il; i<=iu; i++) {
+      for (int k=ks; k<=ke; k++) {
+        for (int j=js; j<=je+1; j++) {
+          for (int i=is; i<=ie; i++) {
             pfield->b.x2f(k,j,i) = 0.0;
           }
         }
       }
-      for (int k=kl; k<=ku; k++) {
-        for (int j=jl; j<=ju; j++) {
+      for (int k=ks; k<=ke; k++) {
+        for (int j=js; j<=je; j++) {
           pcoord->Face3Metric(k, j, il, iu, g, gi);
-          for (int i=il; i<=iu; i++) {
+          for (int i=is; i<=ie; i++) {
 
             Real Bmag, exp_arg_term;
 
@@ -1189,8 +1189,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
 
             // pfield->b.x3f(k,j,i) = b3 * u0 - b0 * u3;
-            pfield->b.x3f(k,j,i) = pfield->b1.x3f(k,j,i) = Bz;
-            pfield->b.x3f(k+1,j,i) = pfield->b1.x3f(k+1,j,i) = Bz;
+            pfield->b.x3f(k,j,i) = Bz;
+            pfield->b.x3f(k+1,j,i) =  Bz;
           }
         }
       }
@@ -1390,7 +1390,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
 
    
-            pfield->b.x1f(k,j,i) = pfield->b1.x1f(k,j,i) = Bx;
+            pfield->b.x1f(k,j,i) = Bx;
           }
         }
       }
@@ -1502,7 +1502,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
 
             // pfield->b.x2f(k,j,i) = b2 * u0 - b0 * u2;
-            pfield->b.x2f(k,j,i) = pfield->b1.x2f(k,j,i) = By;
+            pfield->b.x2f(k,j,i) =  By;
 
           }
         }
@@ -1510,7 +1510,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       for (int k=kl; k<=ku+1; k++) {
         for (int j=jl; j<=ju; j++) {
           for (int i=il; i<=iu; i++) {
-            pfield->b.x3f(k,j,i) = pfield->b1.x3f(k,j,i) = 0.0;
+            pfield->b.x3f(k,j,i) =  0.0;
           }
         }
       }
