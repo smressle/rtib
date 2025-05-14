@@ -2064,7 +2064,7 @@ void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
       for (int j=1; j<=ngh; ++j) {
 #pragma omp simd
         for (int i=il; i<=iu; ++i) {
-          b.x2f(k,(ju+j+1),i) = -b.x2f(k,(ju-j+1),i);  // reflect 2-field
+          b.x2f(k,(ju+j+1),i) = 0;  // reflect 2-field
         }
       }
     }
