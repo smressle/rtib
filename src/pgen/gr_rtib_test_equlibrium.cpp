@@ -1004,12 +1004,6 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             Real v3 = 0;
 
 
-
-            den = P_sol(j)/press_over_rho_interface;
-
-            phydro->w(IDN,k,j,i) =  phydro->w1(IDN,k,j,i) = den;
-
-
             Real u0 = std::sqrt( -1 / ( g(I00,i) + g(I11,i)*SQR(v1) + g(I22,i)*SQR(v2) + g(I33,i)*SQR(v3) + 
                                         2.0*g(I01,i)*v1 + 2.0*g(I02,i)*v2 + 2.0*g(I03,i)*v3  )   ); 
             Real u1 = u0*v1;
@@ -1114,13 +1108,6 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             Real v1 = 0.0;
             v1 = shear_velocity/2.0;
             Real v3 = 0;
-
-
-
-            den = P_sol(j)/press_over_rho_interface;
-
-            phydro->w(IDN,k,j,i) =  phydro->w1(IDN,k,j,i) = den;
-
 
             Real u0 = std::sqrt( -1 / ( g(I00,i) + g(I11,i)*SQR(v1) + g(I22,i)*SQR(v2) + g(I33,i)*SQR(v3) + 
                                       2.0*g(I01,i)*v1 + 2.0*g(I02,i)*v2 + 2.0*g(I03,i)*v3  )   ); 
