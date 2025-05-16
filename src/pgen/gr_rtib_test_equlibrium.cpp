@@ -2144,7 +2144,6 @@ void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
 
             // pfield->b.x3f(k,j,i) = b3 * u0 - b0 * u3;
             b.x3f(k,ju+j,i)   =  Bz;
-            b.x3f(k+1,ju+j,i) =  Bz;
         }
       }
     }
@@ -2160,15 +2159,15 @@ void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
 
 
 
-      for (int k=kl; k<=ku; ++k) {
-      for (int j=1; j<=ngh; ++j) {
-#pragma omp simd
-        for (int i=il; i<=iu; ++i) {
-          fprintf(stderr,"B3 in outer boundary: %g B3 k+1: %g B1; %g rho: %g i j k : %d %d %d  \n ", b.x3f(k,(ju+j),i), b.x3f(k+1,(ju+j),i),b.x1f(k,(ju+j),i),prim(IDN,k,ju+j,i), i, ju+j, k );
-          // b.x3f(k,(ju+j  ),i) =  b.x3f(k,(ju-j+1),i);
-        }
-      }
-    }
+//       for (int k=kl; k<=ku; ++k) {
+//       for (int j=1; j<=ngh; ++j) {
+// #pragma omp simd
+//         for (int i=il; i<=iu; ++i) {
+//           fprintf(stderr,"B3 in outer boundary: %g B3 k+1: %g B1; %g rho: %g i j k : %d %d %d  \n ", b.x3f(k,(ju+j),i), b.x3f(k+1,(ju+j),i),b.x1f(k,(ju+j),i),prim(IDN,k,ju+j,i), i, ju+j, k );
+//           // b.x3f(k,(ju+j  ),i) =  b.x3f(k,(ju-j+1),i);
+//         }
+//       }
+//     }
 
 
   // do nothing
