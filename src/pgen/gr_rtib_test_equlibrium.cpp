@@ -1710,19 +1710,26 @@ void ProjectPressureInnerX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
               Real By = 0;
 
 
+
+            Real v2 = 0;
+            Real v1 = 0.0;
+            v1 = shear_velocity/2.0;
+            Real v3 = 0;
+
+
               // Calculate normal-frame Lorentz factor
 
-              Real uu1, uu2, uu3;
-              if (i<=iu){
-                uu1 = prim(IVX,k,jl-j,i);
-                uu2 = prim(IVY,k,jl-j,i);
-                uu3 = prim(IVZ,k,jl-j,i);
-              }
-              else{
-                uu1 = prim(IVX,k,jl-j,iu);
-                uu2 = prim(IVY,k,jl-j,iu);
-                uu3 = prim(IVZ,k,jl-j,iu);
-              }
+              Real u0 = std::sqrt( -1 / ( g(I00,i) + g(I11,i)*SQR(v1) + g(I22,i)*SQR(v2) + g(I33,i)*SQR(v3) + 
+                          2.0*g(I01,i)*v1 + 2.0*g(I02,i)*v2 + 2.0*g(I03,i)*v3  )   ); 
+              Real u1 = u0*v1;
+              Real u2 = u0*v2;
+              Real u3 = u0*v3;
+
+
+              // Now convert to Athena++ velocities (see White+ 2016)
+              Real uu1 = u1 - gi(I01,i) / gi(I00,i) * u0;
+              Real uu2 = u2 - gi(I02,i) / gi(I00,i) * u0;
+              Real uu3 = u3 - gi(I03,i) / gi(I00,i) * u0;
             Real tmp = g(I11,i) * SQR(uu1) + 2.0 * g(I12,i) * uu1 * uu2
                 + 2.0 * g(I13,i) * uu1 * uu3 + g(I22,i) * SQR(uu2)
                 + 2.0 * g(I23,i) * uu2 * uu3 + g(I33,i) * SQR(uu3);
@@ -1787,7 +1794,7 @@ void ProjectPressureInnerX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
       }
     }
 
-    for (int k=kl; k<=ku; ++k) {
+    for (int k=kl; k<=ku+1; ++k) {
       for (int j=1; j<=ngh; ++j) {
 // #pragma omp simd
         pco->Face3Metric(k, jl-j, il, iu, g, gi);
@@ -1799,19 +1806,26 @@ void ProjectPressureInnerX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
             Real Bz = Bhz * Bmag/Bh;
             Real By = 0;
 
+
+
+            Real v2 = 0;
+            Real v1 = 0.0;
+            v1 = shear_velocity/2.0;
+            Real v3 = 0;
+
             // Calculate normal-frame Lorentz factor
             Real uu1, uu2, uu3;
-            if (k<=ku){
-              uu1 = prim(IVX,k,jl-j,i);
-              uu2 = prim(IVY,k,jl-j,i);
-              uu3 = prim(IVZ,k,jl-j,i);
+            Real u0 = std::sqrt( -1 / ( g(I00,i) + g(I11,i)*SQR(v1) + g(I22,i)*SQR(v2) + g(I33,i)*SQR(v3) + 
+                        2.0*g(I01,i)*v1 + 2.0*g(I02,i)*v2 + 2.0*g(I03,i)*v3  )   ); 
+            Real u1 = u0*v1;
+            Real u2 = u0*v2;
+            Real u3 = u0*v3;
 
-            }
-            else{
-              uu1 = prim(IVX,ku,jl-j,i);
-              uu2 = prim(IVY,ku,jl-j,i);
-              uu3 = prim(IVZ,ku,jl-j,i);
-            }
+
+            // Now convert to Athena++ velocities (see White+ 2016)
+            Real uu1 = u1 - gi(I01,i) / gi(I00,i) * u0;
+            Real uu2 = u2 - gi(I02,i) / gi(I00,i) * u0;
+            Real uu3 = u3 - gi(I03,i) / gi(I00,i) * u0;
 
             Real tmp = g(I11,i) * SQR(uu1) + 2.0 * g(I12,i) * uu1 * uu2
                 + 2.0 * g(I13,i) * uu1 * uu3 + g(I22,i) * SQR(uu2)
@@ -1865,7 +1879,6 @@ void ProjectPressureInnerX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
 
             // pfield->b.x3f(k,j,i) = b3 * u0 - b0 * u3;
             b.x3f(k,jl-j,i)   =  Bz;
-            b.x3f(k+1,jl-j,i) = Bz;
 
             if (std::isnan(b.x3f(k,jl-j,i))) {
               fprintf(stderr,"B3 NAN in inner boundary: i: %d j: %d jl-j: %d k: %d \n b: %g %g  Bmag: %g b_sq: %g \n bmu: %g %g %g %g \n umu: %g %g %g %g \n gamma: %g alpha: %g gi00: %g other gi: %g %g other g: %g %g %g \n", i,j,jl-j,k, b.x3f(k,jl-j,i), b.x3f(k+1,jl-j,i), Bmag, b_sq, b0,b1,b2,b3,u0,u1,u2,u3, gamma, alpha, gi(I00,i),gi(I11,i),gi(I22,i),g(I00,i),g(I11,i),g(I22,i));
@@ -1988,20 +2001,29 @@ void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
               Real Bz = Bcz * Bmag/Bc;
               Real By = 0;
 
+              Real v2 = 0;
+              Real v1 = 0.0;
+              v1 = shear_velocity/2.0;
+              Real v3 = 0;
+
+
+
+              Real u0 = std::sqrt( -1 / ( g(I00,i) + g(I11,i)*SQR(v1) + g(I22,i)*SQR(v2) + g(I33,i)*SQR(v3) + 
+                          2.0*g(I01,i)*v1 + 2.0*g(I02,i)*v2 + 2.0*g(I03,i)*v3  )   ); 
+              Real u1 = u0*v1;
+              Real u2 = u0*v2;
+              Real u3 = u0*v3;
+
+
+              // Now convert to Athena++ velocities (see White+ 2016)
+              Real uu1 = u1 - gi(I01,i) / gi(I00,i) * u0;
+              Real uu2 = u2 - gi(I02,i) / gi(I00,i) * u0;
+              Real uu3 = u3 - gi(I03,i) / gi(I00,i) * u0;
+
+
 
               // Calculate normal-frame Lorentz factor
 
-              Real uu1, uu2, uu3;
-              if (i<=iu){
-                uu1 = prim(IVX,k,ju+j,i);
-                uu2 = prim(IVY,k,ju+j,i);
-                uu3 = prim(IVZ,k,ju+j,i);
-              }
-              else{
-                uu1 = prim(IVX,k,ju+j,iu);
-                uu2 = prim(IVY,k,ju+j,iu);
-                uu3 = prim(IVZ,k,ju+j,iu);
-              }
             Real tmp = g(I11,i) * SQR(uu1) + 2.0 * g(I12,i) * uu1 * uu2
                 + 2.0 * g(I13,i) * uu1 * uu3 + g(I22,i) * SQR(uu2)
                 + 2.0 * g(I23,i) * uu2 * uu3 + g(I33,i) * SQR(uu3);
@@ -2079,18 +2101,17 @@ void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
             Real By = 0;
 
             // Calculate normal-frame Lorentz factor
-            Real uu1, uu2, uu3;
-            if (k<=ku){
-              uu1 = prim(IVX,k,ju+j,i);
-              uu2 = prim(IVY,k,ju+j,i);
-              uu3 = prim(IVZ,k,ju+j,i);
+            Real u0 = std::sqrt( -1 / ( g(I00,i) + g(I11,i)*SQR(v1) + g(I22,i)*SQR(v2) + g(I33,i)*SQR(v3) + 
+                        2.0*g(I01,i)*v1 + 2.0*g(I02,i)*v2 + 2.0*g(I03,i)*v3  )   ); 
+            Real u1 = u0*v1;
+            Real u2 = u0*v2;
+            Real u3 = u0*v3;
 
-            }
-            else{
-              uu1 = prim(IVX,ku,ju+j,i);
-              uu2 = prim(IVY,ku,ju+j,i);
-              uu3 = prim(IVZ,ku,ju+j,i);
-            }
+
+            // Now convert to Athena++ velocities (see White+ 2016)
+            Real uu1 = u1 - gi(I01,i) / gi(I00,i) * u0;
+            Real uu2 = u2 - gi(I02,i) / gi(I00,i) * u0;
+            Real uu3 = u3 - gi(I03,i) / gi(I00,i) * u0;
 
             Real tmp = g(I11,i) * SQR(uu1) + 2.0 * g(I12,i) * uu1 * uu2
                 + 2.0 * g(I13,i) * uu1 * uu3 + g(I22,i) * SQR(uu2)
