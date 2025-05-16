@@ -1217,7 +1217,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
         for (int i=il; i<=iu; i++) {
 
           // Real L = pmy_mesh->mesh_size.x3max - pmy_mesh->mesh_size.x3min;
-          if (pcoord->x3v(k) > 0.0) den *= drat;
+          // if (pcoord->x3v(k) > 0.0) den *= drat;
 
 
           Real C_const = -2.0*grav_acc;
