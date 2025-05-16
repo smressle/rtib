@@ -1982,8 +1982,6 @@ void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
             Real u3 = u0*v3;
             Real u_0, u_1, u_2, u_3;
 
-            Real u_0, u_1, u_2, u_3;
-
             u_0 = g(I00,i)*u0 + g(I01,i)*u1 + g(I02,i)*u2 + g(I03,i)*u3;
             u_1 = g(I01,i)*u0 + g(I11,i)*u1 + g(I12,i)*u2 + g(I13,i)*u3;
             u_2 = g(I02,i)*u0 + g(I12,i)*u1 + g(I22,i)*u2 + g(I23,i)*u3;
