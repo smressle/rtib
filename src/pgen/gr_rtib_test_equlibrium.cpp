@@ -998,28 +998,23 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
             // Calculate normal-frame Lorentz factor
 
-            Real uu1, uu2, uu3;
-            if (i<=iu){
-              uu1 = phydro->w(IVX,k,j,i);
-              uu2 = phydro->w(IVY,k,j,i);
-              uu3 = phydro->w(IVZ,k,j,i);
-            }
-            else{
-              uu1 = phydro->w(IVX,k,j,iu);
-              uu2 = phydro->w(IVY,k,j,iu);
-              uu3 = phydro->w(IVZ,k,j,iu);
-            }
-            Real tmp = g(I11,i) * SQR(uu1) + 2.0 * g(I12,i) * uu1 * uu2
-                + 2.0 * g(I13,i) * uu1 * uu3 + g(I22,i) * SQR(uu2)
-                + 2.0 * g(I23,i) * uu2 * uu3 + g(I33,i) * SQR(uu3);
-            Real gamma = std::sqrt(1.0 + tmp);
+            Real v2 = 0;
+            Real v1 = 0.0;
+            v1 = shear_velocity/2.0;
+            Real v3 = 0;
 
-            // Calculate 4-velocity
-            Real alpha = std::sqrt(-1.0 / gi(I00,i));
-            Real u0 = gamma / alpha;
-            Real u1 = uu1 - alpha * gamma * gi(I01,i);
-            Real u2 = uu2 - alpha * gamma * gi(I02,i);
-            Real u3 = uu3 - alpha * gamma * gi(I03,i);
+
+
+            den = P_sol(j)/press_over_rho_interface;
+
+            phydro->w(IDN,k,j,i) =  phydro->w1(IDN,k,j,i) = den;
+
+
+            Real u0 = std::sqrt( -1 / ( g(I00,i) + g(I11,i)*SQR(v1) + g(I22,i)*SQR(v2) + g(I33,i)*SQR(v3) + 
+                                        2.0*g(I01,i)*v1 + 2.0*g(I02,i)*v2 + 2.0*g(I03,i)*v3  )   ); 
+            Real u1 = u0*v1;
+            Real u2 = u0*v2;
+            Real u3 = u0*v3;
 
             Real u_0, u_1, u_2, u_3;
 
@@ -1115,30 +1110,23 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             By = 0;
 
                         // Calculate normal-frame Lorentz factor
-            Real uu1, uu2, uu3;
-            if (k<=ku){
-              uu1 = phydro->w(IVX,k,j,i);
-              uu2 = phydro->w(IVY,k,j,i);
-              uu3 = phydro->w(IVZ,k,j,i);
+            Real v2 = 0;
+            Real v1 = 0.0;
+            v1 = shear_velocity/2.0;
+            Real v3 = 0;
 
-            }
-            else{
-              uu1 = phydro->w(IVX,ku,j,i);
-              uu2 = phydro->w(IVY,ku,j,i);
-              uu3 = phydro->w(IVZ,ku,j,i);
-            }
 
-            Real tmp = g(I11,i) * SQR(uu1) + 2.0 * g(I12,i) * uu1 * uu2
-                + 2.0 * g(I13,i) * uu1 * uu3 + g(I22,i) * SQR(uu2)
-                + 2.0 * g(I23,i) * uu2 * uu3 + g(I33,i) * SQR(uu3);
-            Real gamma = std::sqrt(1.0 + tmp);
 
-            // Calculate 4-velocity
-            Real alpha = std::sqrt(-1.0 / gi(I00,i));
-            Real u0 = gamma / alpha;
-            Real u1 = uu1 - alpha * gamma * gi(I01,i);
-            Real u2 = uu2 - alpha * gamma * gi(I02,i);
-            Real u3 = uu3 - alpha * gamma * gi(I03,i);
+            den = P_sol(j)/press_over_rho_interface;
+
+            phydro->w(IDN,k,j,i) =  phydro->w1(IDN,k,j,i) = den;
+
+
+            Real u0 = std::sqrt( -1 / ( g(I00,i) + g(I11,i)*SQR(v1) + g(I22,i)*SQR(v2) + g(I33,i)*SQR(v3) + 
+                                      2.0*g(I01,i)*v1 + 2.0*g(I02,i)*v2 + 2.0*g(I03,i)*v3  )   ); 
+            Real u1 = u0*v1;
+            Real u2 = u0*v2;
+            Real u3 = u0*v3;
 
             Real u_0, u_1, u_2, u_3;
             // pcoord->LowerVectorCell(u0, u1, u2, u3, k, j, i, &u_0, &u_1, &u_2, &u_3);
