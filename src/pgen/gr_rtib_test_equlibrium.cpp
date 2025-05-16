@@ -1217,7 +1217,6 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
         for (int i=il; i<=iu; i++) {
 
           // Real L = pmy_mesh->mesh_size.x3max - pmy_mesh->mesh_size.x3min;
-          Real den=rho_h;
           if (pcoord->x3v(k) > 0.0) den *= drat;
 
 
@@ -1226,7 +1225,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
           Real exp_arg_term,press,Bmag;
 
-          den = P_sol(k)/press_over_rho_interface;
+          Real den = P_sol(k)/press_over_rho_interface;
 
 
           Real v3=0.0;
@@ -1929,8 +1928,6 @@ void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
           pmb->pcoord->CellMetric(k, ju+j, il, iu, g, gi);
           for (int i=il; i<=iu; ++i) {
 
-          Real den=rho_c;
-
           Real v2 = 0;
           Real v1 = 0.0;
           v1 = shear_velocity/2.0;
@@ -1938,7 +1935,7 @@ void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
 
 
 
-          den = P_sol(ju+j)/press_over_rho_interface;
+          Real den = P_sol(ju+j)/press_over_rho_interface;
 
           prim(IDN,k,ju+j,i) =  den;
 
@@ -2163,15 +2160,15 @@ void ProjectPressureOuterX2(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
 
 
 
-//       for (int k=kl; k<=ku+1; ++k) {
-//       for (int j=1; j<=ngh; ++j) {
-// #pragma omp simd
-//         for (int i=il; i<=iu; ++i) {
-//           fprintf(stderr,"B3 in outer boundary: %g i j k : %d %d %d  \n ", b.x3f(k,(ju-j+1),i), i, ju-j+1, k );
-//           // b.x3f(k,(ju+j  ),i) =  b.x3f(k,(ju-j+1),i);
-//         }
-//       }
-//     }
+      for (int k=kl; k<=ku+1; ++k) {
+      for (int j=1; j<=ngh; ++j) {
+#pragma omp simd
+        for (int i=il; i<=iu; ++i) {
+          fprintf(stderr,"B3 in outer boundary: %g B1; %g rho: %g i j k : %d %d %d  \n ", b.x3f(k,(ju+j),i),b.x1f(k,(ju+j),i),prim(IDN,k,ju+j,i), i, ju+j, k );
+          // b.x3f(k,(ju+j  ),i) =  b.x3f(k,(ju-j+1),i);
+        }
+      }
+    }
 
 
   // do nothing
