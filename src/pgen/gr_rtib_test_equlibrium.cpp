@@ -2112,6 +2112,229 @@ void ProjectPressureInnerX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
                             FaceField &b, Real time, Real dt,
                             int il, int iu, int jl, int ju, int kl, int ku, int ngh) {
 
+
+      // Prepare scratch arrays
+
+  AthenaArray<Real> &P_sol = pmb->ruser_meshblock_data[2];
+  AthenaArray<Real> g, gi;
+
+  g.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 2);
+  gi.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 2);
+
+
+    for (int k=1; k<=ngh; ++k) {
+      for (int j=jl; j<=ju; ++j) {
+// #pragma omp simd
+          pco->CellMetric(kl-k, j, il, iu, g, gi);
+          for (int i=il; i<=iu; ++i) {
+          Real den=rho_h;
+
+          Real v2 = 0;
+          Real v1 = 0.0;
+          v1 = shear_velocity/2.0;
+          Real v3 = 0;
+
+
+
+          den = P_sol(kl-k)/press_over_rho_interface;
+
+          prim(IDN,kl-k,j,i) =  den;
+
+
+          Real u0 = std::sqrt( -1 / ( g(I00,i) + g(I11,i)*SQR(v1) + g(I22,i)*SQR(v2) + g(I33,i)*SQR(v3) + 
+                                      2.0*g(I01,i)*v1 + 2.0*g(I02,i)*v2 + 2.0*g(I03,i)*v3  )   ); 
+          Real u1 = u0*v1;
+          Real u2 = u0*v2;
+          Real u3 = u0*v3;
+
+
+          // Now convert to Athena++ velocities (see White+ 2016)
+          Real uu1 = u1 - gi(I01,i) / gi(I00,i) * u0;
+          Real uu2 = u2 - gi(I02,i) / gi(I00,i) * u0;
+          Real uu3 = u3 - gi(I03,i) / gi(I00,i) * u0;
+
+          prim(IM1,kl-k,j,i) = uu1;
+          prim(IM2,kl-k,j,i) = uu2;
+          prim(IM3,kl-k,j,i) = uu3;
+          if (NON_BAROTROPIC_EOS) {
+            prim(IEN,kl-k,j,i) =  P_sol(kl-k);
+
+          }
+         }
+        }
+      }
+      
+
+  // copy face-centered magnetic fields into ghost zones, reflecting b2
+  if (MAGNETIC_FIELDS_ENABLED) {
+
+      Real Bin = ( Bh * Bc * std::sin(theta_rot) ) / std::sqrt( SQR(Bh) + SQR(Bc) + 2.0*Bh*Bc*std::cos(theta_rot) ) ;
+      Real Bhx = Bin;
+      Real Bcx = - Bhx;
+
+
+      Real sign_flip = 1.0;
+      if (std::cos(theta_rot)<0.0) sign_flip=-1.0;
+      Real Bhy = sign_flip * std::sqrt( SQR(Bh) - SQR(Bin) );
+      Real Bcy =             std::sqrt( SQR(Bc) - SQR(Bin) );
+
+    for (int k=1; k<=ngh; ++k) {
+      for (int j=jl; j<=ju; ++j) {
+// #pragma omp simd
+        pco->Face1Metric(kl-k, j, il, iu+1, g, gi);
+        for (int i=il; i<=iu+1; ++i) {
+
+            Real Bmag =  std::sqrt(P_sol(kl-k)/beta_h*2.0);
+            Real Bx = Bhx * Bmag/Bh;
+            Real By = Bhy * Bmag/Bh;
+            Real Bz = 0;
+
+
+
+            Real v2 = 0;
+            Real v1 = 0.0;
+            v1 = shear_velocity/2.0;
+            Real v3 = 0;
+
+
+            // Calculate normal-frame Lorentz factor
+
+            Real u0 = std::sqrt( -1 / ( g(I00,i) + g(I11,i)*SQR(v1) + g(I22,i)*SQR(v2) + g(I33,i)*SQR(v3) + 
+                        2.0*g(I01,i)*v1 + 2.0*g(I02,i)*v2 + 2.0*g(I03,i)*v3  )   ); 
+            Real u1 = u0*v1;
+            Real u2 = u0*v2;
+            Real u3 = u0*v3;
+
+
+            Real u_0, u_1, u_2, u_3;
+
+            u_0 = g(I00,i)*u0 + g(I01,i)*u1 + g(I02,i)*u2 + g(I03,i)*u3;
+            u_1 = g(I01,i)*u0 + g(I11,i)*u1 + g(I12,i)*u2 + g(I13,i)*u3;
+            u_2 = g(I02,i)*u0 + g(I12,i)*u1 + g(I22,i)*u2 + g(I23,i)*u3;
+            u_3 = g(I03,i)*u0 + g(I13,i)*u1 + g(I23,i)*u2 + g(I33,i)*u3;
+            // pcoord->LowerVectorCell(u0, u1, u2, u3, k, j, i, &u_0, &u_1, &u_2, &u_3);
+
+            //Assume B^i_new = A_norm B^i
+            //Then b^0 and b^i \propto A_norm 
+
+            // Calculate 4-magnetic field
+            Real bb1 = 0.0, bb2 = 0.0, bb3 = 0.0;
+            Real b0 = 0.0, b1 = 0.0, b2 = 0.0, b3 = 0.0;
+            Real b_0 = 0.0, b_1 = 0.0, b_2 = 0.0, b_3 = 0.0;
+            bb1 = Bx;
+            bb2 = By;
+            bb3 = Bz;
+            b0 = u_1 * bb1 + u_2 * bb2 + u_3 * bb3;
+            b1 = (bb1 + b0 * u1) / u0;
+            b2 = (bb2 + b0 * u2) / u0;
+            b3 = (bb3 + b0 * u3) / u0;
+            // pcoord->LowerVectorCell(b0, b1, b2, b3, k, j, i, &b_0, &b_1, &b_2, &b_3);
+
+
+            b_0 = g(I00,i)*b0 + g(I01,i)*b1 + g(I02,i)*b2 + g(I03,i)*b3;
+            b_1 = g(I01,i)*b0 + g(I11,i)*b1 + g(I12,i)*b2 + g(I13,i)*b3;
+            b_2 = g(I02,i)*b0 + g(I12,i)*b1 + g(I22,i)*b2 + g(I23,i)*b3;
+            b_3 = g(I03,i)*b0 + g(I13,i)*b1 + g(I23,i)*b2 + g(I33,i)*b3;
+            
+            // Calculate magnetic pressure
+            Real b_sq = b0 * b_0 + b1 * b_1 + b2 * b_2 + b3 * b_3;
+
+            Bx = Bx * Bmag/std::sqrt(b_sq);
+            By = By * Bmag/std::sqrt(b_sq);
+            Bz = Bz * Bmag/std::sqrt(b_sq);
+
+
+            b.x1f(kl-k,j,i) =  Bx;
+        }
+      }
+    }
+
+    for (int k=1; k<=ngh; ++k) {
+      for (int j=jl; j<=ju+1; ++j) {
+// #pragma omp simd
+        pco->Face2Metric(kl-k, j, il, iu, g, gi);
+        for (int i=il; i<=iu; ++i) {
+              Real Bmag =  std::sqrt(P_sol(kl-k)/beta_h*2.0);
+
+            Real Bx = Bhx * Bmag/Bh;
+            Real By = Bhy * Bmag/Bh;
+            Real Bz = 0;
+
+
+
+            Real v2 = 0;
+            Real v1 = 0.0;
+            v1 = shear_velocity/2.0;
+            Real v3 = 0;
+
+
+            // Calculate normal-frame Lorentz factor
+
+            Real u0 = std::sqrt( -1 / ( g(I00,i) + g(I11,i)*SQR(v1) + g(I22,i)*SQR(v2) + g(I33,i)*SQR(v3) + 
+                        2.0*g(I01,i)*v1 + 2.0*g(I02,i)*v2 + 2.0*g(I03,i)*v3  )   ); 
+            Real u1 = u0*v1;
+            Real u2 = u0*v2;
+            Real u3 = u0*v3;
+            Real u_0, u_1, u_2, u_3;
+            // pcoord->LowerVectorCell(u0, u1, u2, u3, k, j, i, &u_0, &u_1, &u_2, &u_3);
+
+
+            u_0 = g(I00,i)*u0 + g(I01,i)*u1 + g(I02,i)*u2 + g(I03,i)*u3;
+            u_1 = g(I01,i)*u0 + g(I11,i)*u1 + g(I12,i)*u2 + g(I13,i)*u3;
+            u_2 = g(I02,i)*u0 + g(I12,i)*u1 + g(I22,i)*u2 + g(I23,i)*u3;
+            u_3 = g(I03,i)*u0 + g(I13,i)*u1 + g(I23,i)*u2 + g(I33,i)*u3;
+
+            //Assume B^i_new = A_norm B^i
+            //Then b^0 and b^i \propto A_norm 
+
+            // Calculate 4-magnetic field
+            Real bb1 = 0.0, bb2 = 0.0, bb3 = 0.0;
+            Real b0 = 0.0, b1 = 0.0, b2 = 0.0, b3 = 0.0;
+            Real b_0 = 0.0, b_1 = 0.0, b_2 = 0.0, b_3 = 0.0;
+            bb1 = Bx;
+            bb2 = By;
+            bb3 = Bz;
+            b0 = u_1 * bb1 + u_2 * bb2 + u_3 * bb3;
+            b1 = (bb1 + b0 * u1) / u0;
+            b2 = (bb2 + b0 * u2) / u0;
+            b3 = (bb3 + b0 * u3) / u0;
+            // pcoord->LowerVectorCell(b0, b1, b2, b3, k, j, i, &b_0, &b_1, &b_2, &b_3);
+
+            b_0 = g(I00,i)*b0 + g(I01,i)*b1 + g(I02,i)*b2 + g(I03,i)*b3;
+            b_1 = g(I01,i)*b0 + g(I11,i)*b1 + g(I12,i)*b2 + g(I13,i)*b3;
+            b_2 = g(I02,i)*b0 + g(I12,i)*b1 + g(I22,i)*b2 + g(I23,i)*b3;
+            b_3 = g(I03,i)*b0 + g(I13,i)*b1 + g(I23,i)*b2 + g(I33,i)*b3;
+            
+            
+            // Calculate magnetic pressure
+            Real b_sq = b0 * b_0 + b1 * b_1 + b2 * b_2 + b3 * b_3;
+
+            Bx = Bx * Bmag/std::sqrt(b_sq);
+            By = By * Bmag/std::sqrt(b_sq);
+            Bz = Bz * Bmag/std::sqrt(b_sq);
+
+            // pfield->b.x3f(k,j,i) = b3 * u0 - b0 * u3;
+            b.x2f(kl-k,j,i)   =  By;
+
+        }
+      }
+    }
+
+    for (int k=1; k<=ngh; ++k) {
+      for (int j=jl; j<=ju; ++j) {
+ #pragma omp simd
+        for (int i=il; i<=iu; ++i) {
+
+            b.x3f(kl-k,j,i)   = 0.0;
+
+        }
+      }
+    }
+  }
+
+  g.DeleteAthenaArray();
+  gi.DeleteAthenaArray();
+
 // do nothing
 
   return;
@@ -2125,8 +2348,220 @@ void ProjectPressureInnerX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> 
 
 void ProjectPressureOuterX3(MeshBlock *pmb, Coordinates *pco, AthenaArray<Real> &prim,
                             FaceField &b, Real time, Real dt,
-                            int il, int iu, int jl, int ju, int kl, int ku, int ngh) {
-// do nothing
+                            int il, int iu, int jl, int ju, int kl, int ku, int ngh) { AthenaArray<Real> g,gi;
+
+ AthenaArray<Real> &P_sol = pmb->ruser_meshblock_data[2];
+
+
+  g.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 2);
+  gi.NewAthenaArray(NMETRIC, pmb->ie + NGHOST + 2);
+
+
+    for (int k=1; k<=ngh; ++k) {
+      for (int j=jl; j<=ju; ++j) {
+// #pragma omp simd
+          pmb->pcoord->CellMetric(ku+k, j, il, iu, g, gi);
+          for (int i=il; i<=iu; ++i) {
+
+          Real v2 = 0;
+          Real v1 = 0.0;
+          v1 = shear_velocity/2.0;
+          Real v3 = 0;
+
+
+
+          Real den = P_sol(ku+k)/press_over_rho_interface;
+
+          prim(IDN,ku+k,j,i) =  den;
+
+
+          Real u0 = std::sqrt( -1 / ( g(I00,i) + g(I11,i)*SQR(v1) + g(I22,i)*SQR(v2) + g(I33,i)*SQR(v3) + 
+                                      2.0*g(I01,i)*v1 + 2.0*g(I02,i)*v2 + 2.0*g(I03,i)*v3  )   ); 
+          Real u1 = u0*v1;
+          Real u2 = u0*v2;
+          Real u3 = u0*v3;
+
+
+          // Now convert to Athena++ velocities (see White+ 2016)
+          Real uu1 = u1 - gi(I01,i) / gi(I00,i) * u0;
+          Real uu2 = u2 - gi(I02,i) / gi(I00,i) * u0;
+          Real uu3 = u3 - gi(I03,i) / gi(I00,i) * u0;
+
+          prim(IM1,ku+k,j,i) = uu1;
+          prim(IM2,ku+k,j,i) = uu2;
+          prim(IM3,ku+k,j,i) = uu3;
+          if (NON_BAROTROPIC_EOS) {
+            prim(IEN,ku+k,j,i) =  P_sol(ku+k);
+
+          }
+            // prim(IVY,k,ju+j,i) = -prim(IVY,k,ju-j+1,i);  // reflect 2-velocity
+          }
+      }
+    
+  }
+
+  // copy face-centered magnetic fields into ghost zones, reflecting b2
+  if (MAGNETIC_FIELDS_ENABLED) {
+      Real Bin = ( Bh * Bc * std::sin(theta_rot) ) / std::sqrt( SQR(Bh) + SQR(Bc) + 2.0*Bh*Bc*std::cos(theta_rot) ) ;
+      Real Bhx = Bin;
+      Real Bcx = - Bhx;
+
+
+      Real sign_flip = 1.0;
+      if (std::cos(theta_rot)<0.0) sign_flip=-1.0;
+      Real Bhy = sign_flip * std::sqrt( SQR(Bh) - SQR(Bin) );
+      Real Bcy =             std::sqrt( SQR(Bc) - SQR(Bin) );
+
+    for (int k=1; k<=ngh; ++k) {
+      for (int j=jl; j<=ju; ++j) {
+// #pragma omp simd
+        pmb->pcoord->Face1Metric(ku+k, j, il, iu+1, g, gi);
+        for (int i=il; i<=iu+1; ++i) {
+
+            Real Bmag =  std::sqrt(P_sol(ku+k)/beta_c*2.0);
+            Real Bx = Bcx * Bmag/Bc;
+            Real By = Bcy * Bmag/Bc;
+            Real Bz = 0;
+
+            Real v2 = 0;
+            Real v1 = 0.0;
+            v1 = shear_velocity/2.0;
+            Real v3 = 0;
+
+
+            // Calculate normal-frame Lorentz factor
+
+            Real u0 = std::sqrt( -1 / ( g(I00,i) + g(I11,i)*SQR(v1) + g(I22,i)*SQR(v2) + g(I33,i)*SQR(v3) + 
+                        2.0*g(I01,i)*v1 + 2.0*g(I02,i)*v2 + 2.0*g(I03,i)*v3  )   ); 
+            Real u1 = u0*v1;
+            Real u2 = u0*v2;
+            Real u3 = u0*v3;
+            Real u_0, u_1, u_2, u_3;
+
+            u_0 = g(I00,i)*u0 + g(I01,i)*u1 + g(I02,i)*u2 + g(I03,i)*u3;
+            u_1 = g(I01,i)*u0 + g(I11,i)*u1 + g(I12,i)*u2 + g(I13,i)*u3;
+            u_2 = g(I02,i)*u0 + g(I12,i)*u1 + g(I22,i)*u2 + g(I23,i)*u3;
+            u_3 = g(I03,i)*u0 + g(I13,i)*u1 + g(I23,i)*u2 + g(I33,i)*u3;
+            // pcoord->LowerVectorCell(u0, u1, u2, u3, k, j, i, &u_0, &u_1, &u_2, &u_3);
+
+            //Assume B^i_new = A_norm B^i
+            //Then b^0 and b^i \propto A_norm 
+
+            // Calculate 4-magnetic field
+            Real bb1 = 0.0, bb2 = 0.0, bb3 = 0.0;
+            Real b0 = 0.0, b1 = 0.0, b2 = 0.0, b3 = 0.0;
+            Real b_0 = 0.0, b_1 = 0.0, b_2 = 0.0, b_3 = 0.0;
+            bb1 = Bx;
+            bb2 = By;
+            bb3 = Bz;
+            b0 = u_1 * bb1 + u_2 * bb2 + u_3 * bb3;
+            b1 = (bb1 + b0 * u1) / u0;
+            b2 = (bb2 + b0 * u2) / u0;
+            b3 = (bb3 + b0 * u3) / u0;
+            // pcoord->LowerVectorCell(b0, b1, b2, b3, k, j, i, &b_0, &b_1, &b_2, &b_3);
+
+
+            b_0 = g(I00,i)*b0 + g(I01,i)*b1 + g(I02,i)*b2 + g(I03,i)*b3;
+            b_1 = g(I01,i)*b0 + g(I11,i)*b1 + g(I12,i)*b2 + g(I13,i)*b3;
+            b_2 = g(I02,i)*b0 + g(I12,i)*b1 + g(I22,i)*b2 + g(I23,i)*b3;
+            b_3 = g(I03,i)*b0 + g(I13,i)*b1 + g(I23,i)*b2 + g(I33,i)*b3;
+            
+            // Calculate magnetic pressure
+            Real b_sq = b0 * b_0 + b1 * b_1 + b2 * b_2 + b3 * b_3;
+
+            Bx = Bx * Bmag/std::sqrt(b_sq);
+            By = By * Bmag/std::sqrt(b_sq);
+            Bz = Bz * Bmag/std::sqrt(b_sq);
+
+
+            b.x1f(ku+k,j,i) =  Bx;
+        }
+      }
+    }
+
+    for (int k=1; k<=ngh; ++k) {
+      for (int j=jl; j<=ju+1; ++j) {
+// #pragma omp simd
+        pmb->pcoord->Face2Metric(ku+k, j, il, iu, g, gi);
+        for (int i=il; i<=iu; ++i) {
+
+            Real Bmag =  std::sqrt(P_sol(ku+k)/beta_c*2.0);
+
+            Real Bx = Bcx * Bmag/Bc;
+            Real By = Bcy * Bmag/Bc;
+            Real Bz = 0;
+
+            Real v2 = 0;
+            Real v1 = 0.0;
+            v1 = shear_velocity/2.0;
+            Real v3 = 0;
+
+
+            // Calculate normal-frame Lorentz factor
+
+            Real u0 = std::sqrt( -1 / ( g(I00,i) + g(I11,i)*SQR(v1) + g(I22,i)*SQR(v2) + g(I33,i)*SQR(v3) + 
+                        2.0*g(I01,i)*v1 + 2.0*g(I02,i)*v2 + 2.0*g(I03,i)*v3  )   ); 
+            Real u1 = u0*v1;
+            Real u2 = u0*v2;
+            Real u3 = u0*v3;
+            Real u_0, u_1, u_2, u_3;
+            // pcoord->LowerVectorCell(u0, u1, u2, u3, k, j, i, &u_0, &u_1, &u_2, &u_3);
+
+
+            u_0 = g(I00,i)*u0 + g(I01,i)*u1 + g(I02,i)*u2 + g(I03,i)*u3;
+            u_1 = g(I01,i)*u0 + g(I11,i)*u1 + g(I12,i)*u2 + g(I13,i)*u3;
+            u_2 = g(I02,i)*u0 + g(I12,i)*u1 + g(I22,i)*u2 + g(I23,i)*u3;
+            u_3 = g(I03,i)*u0 + g(I13,i)*u1 + g(I23,i)*u2 + g(I33,i)*u3;
+
+            //Assume B^i_new = A_norm B^i
+            //Then b^0 and b^i \propto A_norm 
+
+            // Calculate 4-magnetic field
+            Real bb1 = 0.0, bb2 = 0.0, bb3 = 0.0;
+            Real b0 = 0.0, b1 = 0.0, b2 = 0.0, b3 = 0.0;
+            Real b_0 = 0.0, b_1 = 0.0, b_2 = 0.0, b_3 = 0.0;
+            bb1 = Bx;
+            bb2 = By;
+            bb3 = Bz;
+            b0 = u_1 * bb1 + u_2 * bb2 + u_3 * bb3;
+            b1 = (bb1 + b0 * u1) / u0;
+            b2 = (bb2 + b0 * u2) / u0;
+            b3 = (bb3 + b0 * u3) / u0;
+            // pcoord->LowerVectorCell(b0, b1, b2, b3, k, j, i, &b_0, &b_1, &b_2, &b_3);
+
+            b_0 = g(I00,i)*b0 + g(I01,i)*b1 + g(I02,i)*b2 + g(I03,i)*b3;
+            b_1 = g(I01,i)*b0 + g(I11,i)*b1 + g(I12,i)*b2 + g(I13,i)*b3;
+            b_2 = g(I02,i)*b0 + g(I12,i)*b1 + g(I22,i)*b2 + g(I23,i)*b3;
+            b_3 = g(I03,i)*b0 + g(I13,i)*b1 + g(I23,i)*b2 + g(I33,i)*b3;
+            
+            
+            // Calculate magnetic pressure
+            Real b_sq = b0 * b_0 + b1 * b_1 + b2 * b_2 + b3 * b_3;
+
+            Bx = Bx * Bmag/std::sqrt(b_sq);
+            By = By * Bmag/std::sqrt(b_sq);
+            Bz = Bz * Bmag/std::sqrt(b_sq);
+            b.x2f(ku+k,j,i) = By;  // reflect 2-field
+        }
+      }
+    }
+
+    for (int k=1; k<=ngh; ++k) {
+      for (int j=jl; j<=ju; ++j) {
+#pragma omp simd
+        for (int i=il; i<=iu; ++i) {
+
+            // pfield->b.x3f(k,j,i) = b3 * u0 - b0 * u3;
+            b.x3f(ku+k+1,j,i)   =  0.0;
+        }
+      }
+    }
+  }
+
+  g.DeleteAthenaArray();
+  gi.DeleteAthenaArray();
+
+
 
   return;
 }
