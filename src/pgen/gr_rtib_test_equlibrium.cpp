@@ -127,7 +127,9 @@ Real GetBAngle(const Real x){
 
 
       Real w_linear = (x - rotation_region_min) / (rotation_region_max - rotation_region_min);
-      w_linear = std::clamp(w_linear, 0.0, 1.0);
+      if (w_linear>1) w_linear = 1.0;
+      if (w_linear<0) w_linear = 0.0;
+      // w_linear = std::clamp(w_linear, 0.0, 1.0);
 
       // Smoothstep: smooth interpolation with smooth first derivative
       Real w = w_linear * w_linear * (3.0 - 2.0 * w_linear);
