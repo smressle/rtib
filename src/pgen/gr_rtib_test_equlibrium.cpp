@@ -125,9 +125,15 @@ Real GetBAngle(const Real x){
       Real angle_with_x_c = std::atan2(Bcz,Bcx);
 
 
-      Real w = (x - rotation_region_min) / (rotation_region_max - rotation_region_min);
-      if (w>1) w = 1.0;
-      if (w<0) w = 0.0;
+
+      Real w_linear = (x - rotation_region_min) / (rotation_region_max - rotation_region_min);
+      w_linear = std::clamp(w_linear, 0.0, 1.0);
+
+      // Smoothstep: smooth interpolation with smooth first derivative
+      Real w = w_linear * w_linear * (3.0 - 2.0 * w_linear);
+      // Real w = (x - rotation_region_min) / (rotation_region_max - rotation_region_min);
+      // if (w>1) w = 1.0;
+      // if (w<0) w = 0.0;
       // Real theta_y = (1.0 - w) * angle_with_x_h + w * angle_with_x_c;
 
       Real delta_theta = angle_with_x_c - angle_with_x_h;
