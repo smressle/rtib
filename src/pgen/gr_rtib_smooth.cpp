@@ -103,7 +103,7 @@ Real SmoothInterpolation(Real t, Real lower_value, Real higher_value, Real width
   return lower_value + 0.5 * (higher_value - lower_value) * ( 1.0 + std::tanh(t/width) );
 }
 Real SmoothInterpolationDeriviative(Real t, Real lower_value, Real higher_value, Real width){
-  return 0.5 * (higher_value - lower_value) * ( SQR(std:sech(t/width))/width );
+  return 0.5 * (higher_value - lower_value) * ( SQR(std::sech(t/width))/width );
 }
 
 Real GetBAngle(const Real x){
