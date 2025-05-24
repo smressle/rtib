@@ -99,6 +99,10 @@ Real theta_rot;
 int RefinementCondition(MeshBlock *pmb);
 
 
+Real SmoothInterpolation(Real t, Real lower_value, Real higher_value, Real width){
+  return lower_value + 0.5 * (higher_value - lower_value) * ( 1.0 + std::tanh(t/width) );
+}
+
 Real GetBAngle(const Real x){
 
       Real Bin = ( Bh * Bc * std::sin(theta_rot) ) / std::sqrt( SQR(Bh) + SQR(Bc) + 2.0*Bh*Bc*std::cos(theta_rot) ) ;
@@ -111,31 +115,34 @@ Real GetBAngle(const Real x){
       Real Bhz = sign_flip * std::sqrt( SQR(Bh) - SQR(Bin) );
       Real Bcz =             std::sqrt( SQR(Bc) - SQR(Bin) );
 
-
+      //This applies to 2D and 3D.  In 2D field should be called Bzy
       Real angle_with_x_h = std::atan2(Bhz,Bhx);
       Real angle_with_x_c = std::atan2(Bcz,Bcx);
 
 
 
-      Real w_linear = (x - rotation_region_min) / (rotation_region_max - rotation_region_min);
-      if (w_linear>1) w_linear = 1.0;
-      if (w_linear<0) w_linear = 0.0;
-      // w_linear = std::clamp(w_linear, 0.0, 1.0);
+      // Real w_linear = (x - rotation_region_min) / (rotation_region_max - rotation_region_min);
+      // if (w_linear>1) w_linear = 1.0;
+      // if (w_linear<0) w_linear = 0.0;
+      // // w_linear = std::clamp(w_linear, 0.0, 1.0);
 
-      // Smoothstep: smooth interpolation with smooth first derivative
-      Real w = w_linear * w_linear * (3.0 - 2.0 * w_linear);
-      // Real w = (x - rotation_region_min) / (rotation_region_max - rotation_region_min);
-      // if (w>1) w = 1.0;
-      // if (w<0) w = 0.0;
-      // Real theta_y = (1.0 - w) * angle_with_x_h + w * angle_with_x_c;
+      // // Smoothstep: smooth interpolation with smooth first derivative
+      // Real w = w_linear * w_linear * (3.0 - 2.0 * w_linear);
+      // // Real w = (x - rotation_region_min) / (rotation_region_max - rotation_region_min);
+      // // if (w>1) w = 1.0;
+      // // if (w<0) w = 0.0;
+      // // Real theta_y = (1.0 - w) * angle_with_x_h + w * angle_with_x_c;
 
-      Real delta_theta = angle_with_x_c - angle_with_x_h;
-      // Wrap to [-π, π]
-      if (delta_theta > PI) delta_theta -= 2.0 * PI;
-      if (delta_theta < -PI) delta_theta += 2.0 * PI;
+      // Real delta_theta = angle_with_x_c - angle_with_x_h;
+      // // Wrap to [-π, π]
+      // if (delta_theta > PI) delta_theta -= 2.0 * PI;
+      // if (delta_theta < -PI) delta_theta += 2.0 * PI;
 
 
-      return  angle_with_x_h + w * delta_theta;
+      // return  angle_with_x_h + w * delta_theta;
+
+
+      return SmoothInterpolation(x, angle_with_x_h, angle_with_x_c, length_of_rotation_region)
 }
 
 void Pressure_ODE_2D(Real t, Real y, bool is_top,ParameterInput *pin, MeshBlock *pmb, Real *dydt) {
@@ -155,8 +162,29 @@ void Pressure_ODE_2D(Real t, Real y, bool is_top,ParameterInput *pin, MeshBlock 
       Real g_33 = 1.0;
 
       Real v_x;
-      if (is_top) v_x = shear_velocity/2.0;
-      else v_x = -shear_velocity/2.0;
+      // if (is_top) v_x = shear_velocity/2.0;
+      // else v_x = -shear_velocity/2.0;
+
+      Real v_c = shear_velocity/2.0;
+      Real v_h = -shear_velocity/2.0;
+
+
+      Real beta, sigma;
+
+      // if (is_top){
+      //   beta = beta_c;
+      //   sigma = sigma_c;
+      // }
+      // else{
+      //   beta = beta_h;
+      //   sigma = sigma_h;
+      // }
+
+      beta = std::exp( SmoothInterpolation(t, std::log(beta_h), std::log(beta_c), length_of_rotation_region) );
+      sigma = 2.0 * press_over_rho_interface / beta ;
+      v_x = SmoothInterpolation(t, v_h, v_c, length_of_rotation_region) ;
+
+
       Real v_y = 0.0;
       Real v_z = 0.0;
 
@@ -191,16 +219,6 @@ void Pressure_ODE_2D(Real t, Real y, bool is_top,ParameterInput *pin, MeshBlock 
       Real denominator = (1.0 + 2.0 * Phi_N - SQR(v_x) );
       Real prefactor = numerator / denominator;
 
-      Real beta, sigma;
-
-      if (is_top){
-        beta = beta_c;
-        sigma = sigma_c;
-      }
-      else{
-        beta = beta_h;
-        sigma = sigma_h;
-      }
       Real bracket = (
           2 / sigma +
           (gamma_adi * beta) / (gamma_adi - 1) +
@@ -229,10 +247,30 @@ void Pressure_ODE_3D(Real t, Real y, bool is_top,ParameterInput *pin, MeshBlock 
       Real g_22 = 1.0;
 
       Real v_x;
-      if (is_top) v_x = shear_velocity/2.0;
-      else v_x = -shear_velocity/2.0;
+      // if (is_top) v_x = shear_velocity/2.0;
+      // else v_x = -shear_velocity/2.0;
       Real v_y = 0.0;
       Real v_z = 0.0;
+
+      Real v_c = shear_velocity/2.0;
+      Real v_h = -shear_velocity/2.0;
+
+      Real beta, sigma;
+
+      // if (is_top){
+      //   beta = beta_c;
+      //   sigma = sigma_c;
+      // }
+      // else{
+      //   beta = beta_h;
+      //   sigma = sigma_h;
+      // }
+
+      beta = std::exp( SmoothInterpolation(t, std::log(beta_h), std::log(beta_c), length_of_rotation_region) );
+      sigma = 2.0 * press_over_rho_interface / beta ;
+      v_x = SmoothInterpolation(t, v_h, v_c, length_of_rotation_region) ;
+
+
 
 
       Real uu_t = std::sqrt( -1 / ( g_00 + g_11*SQR(v_x) + g_22*SQR(v_y) + g_33*SQR(v_z) + 
@@ -265,16 +303,16 @@ void Pressure_ODE_3D(Real t, Real y, bool is_top,ParameterInput *pin, MeshBlock 
       Real denominator = (1.0 + 2.0 * Phi_N - SQR(v_x) );
       Real prefactor = numerator / denominator;
 
-      Real beta, sigma;
+      // Real beta, sigma;
 
-      if (is_top){
-        beta = beta_c;
-        sigma = sigma_c;
-      }
-      else{
-        beta = beta_h;
-        sigma = sigma_h;
-      }
+      // if (is_top){
+      //   beta = beta_c;
+      //   sigma = sigma_c;
+      // }
+      // else{
+      //   beta = beta_h;
+      //   sigma = sigma_h;
+      // }
       Real bracket = (
           2 / sigma +
           (gamma_adi * beta) / (gamma_adi - 1) +
@@ -890,8 +928,6 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
         pcoord->CellMetric(k, j, il, iu, g, gi);
         for (int i=il; i<=iu; i++) {
 
-          Real den=rho_h;
-          if (pcoord->x2v(j) > 0.0) den *= drat;
 
           // Real Phi_const = Phi/
 
@@ -908,8 +944,12 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
           Real v2 = 0;
           Real v1 = 0.0;
-          if (pcoord->x2v(j) > 0.0) v1 = shear_velocity/2.0;
-          else v1 = -shear_velocity/2.0;
+          // if (pcoord->x2v(j) > 0.0) v1 = shear_velocity/2.0;
+          // else v1 = -shear_velocity/2.0;
+
+
+          v_1 = SmoothInterpolation(pcoord->x2v(j), -shear_velocity/2.0, shear_velocity/2.0, length_of_rotation_region) ;
+
           Real v3 = 0;
 
 
@@ -943,7 +983,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           //   Bmag = Bh * std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const);
           // }
 
-          den = P_sol(j)/press_over_rho_interface;
+          Real den = P_sol(j)/press_over_rho_interface;
 
           phydro->w(IDN,k,j,i) = den;
 
@@ -1067,69 +1107,87 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
             Real exp_arg_term,Bmag;
 
-            if (pcoord->x2v(j) > 0.0){ // cold
-              // exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
-              // Real A_const = exp_arg_term;
-              // Real B_const = 1.0 + 2.0 * grav_acc*y0 - SQR(shear_velocity);
-              // press = press_over_rho_interface*dc * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
+            Real beta = std::exp( SmoothInterpolation(t, std::log(beta_h), std::log(beta_c), length_of_rotation_region) );
 
-              // Bmag = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const));
-              // Bmag = Bc * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
-
-              Bmag =  std::sqrt(P_sol(j)/beta_c*2.0);
-
-            }
-            else{ // hot
-              // exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
-              // Real A_const = exp_arg_term;
-              // Real B_const = 1.0 + 2.0 * grav_acc*y0;
-              // // press = press_over_rho_interface*dc * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
-
-              // Bmag = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const));
-
-              // Bmag = Bh * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
-
-              Bmag =  std::sqrt(P_sol(j)/beta_h*2.0);
-            }
-
-
-            if (pcoord->x2v(j) < rotation_region_min){
-              Bx = Bhx * Bmag/Bh;
-              Bz = Bhz * Bmag/Bh;
-            }
-            else if (pcoord->x2v(j) < rotation_region_max){
-              // Real w = ( pcoord->x2v(j) -rotation_region_min )/(rotation_region_max-rotation_region_min);
-              // // Bx = Bhx + Bx_slope * ( pcoord->x2v(j) - rotation_region_min);
-              // // Bz = Bhz + Bz_slope * ( pcoord->x2v(j) - rotation_region_min);
-              // // Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x2v(j) - rotation_region_min);
-              // // Bz = Bhz_norm + Bz_slope_norm * ( pcoord->x2v(j) - rotation_region_min);
+            Bmag =  std::sqrt(P_sol(j)/beta*2.0);
 
 
 
-              // // Bx = Bhx_norm * std::sin((1.0-w)*theta_rot)/(sin(theta_rot) + 1e-10) + Bcx_norm*std::sin(w*theta_rot)/(sin(theta_rot) + 1e-10);
-              // // Bz = Bhz_norm * std::sin((1.0-w)*theta_rot)/(sin(theta_rot) + 1e-10) + Bcz_norm*std::sin(w*theta_rot)/(sin(theta_rot) + 1e-10);
+            Real theta_b = GetBAngle(pcoord->x2v(j));
+            Bx = std::cos(theta_b);
+            Bz = std::sin(theta_b);
+            //Now normalize
+
+            Real B_norm = std::sqrt( SQR(Bx) + SQR(Bz) );
+            // Bx = Bx * Bh/B_norm;
+            // Bz = Bz * Bh/B_norm;
+            Bx = Bx * Bmag/B_norm;
+            Bz = Bz * Bmag/B_norm;
+            By = 0.0;
+
+            // if (pcoord->x2v(j) > 0.0){ // cold
+            //   // exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
+            //   // Real A_const = exp_arg_term;
+            //   // Real B_const = 1.0 + 2.0 * grav_acc*y0 - SQR(shear_velocity);
+            //   // press = press_over_rho_interface*dc * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
+
+            //   // Bmag = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const));
+            //   // Bmag = Bc * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
+
+            //   Bmag =  std::sqrt(P_sol(j)/beta_c*2.0);
+
+            // }
+            // else{ // hot
+            //   // exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
+            //   // Real A_const = exp_arg_term;
+            //   // Real B_const = 1.0 + 2.0 * grav_acc*y0;
+            //   // // press = press_over_rho_interface*dc * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
+
+            //   // Bmag = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const));
+
+            //   // Bmag = Bh * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
+
+            //   Bmag =  std::sqrt(P_sol(j)/beta_h*2.0);
+            // }
 
 
-              // Bx = Bx_rotation_region_ymin + Bx_slope * ( pcoord->x2v(j) - rotation_region_min);
-              // Bz = Bz_rotation_region_ymin + Bz_slope * ( pcoord->x2v(j) - rotation_region_min);
+            // if (pcoord->x2v(j) < rotation_region_min){
+            //   Bx = Bhx * Bmag/Bh;
+            //   Bz = Bhz * Bmag/Bh;
+            // }
+            // else if (pcoord->x2v(j) < rotation_region_max){
+            //   // Real w = ( pcoord->x2v(j) -rotation_region_min )/(rotation_region_max-rotation_region_min);
+            //   // // Bx = Bhx + Bx_slope * ( pcoord->x2v(j) - rotation_region_min);
+            //   // // Bz = Bhz + Bz_slope * ( pcoord->x2v(j) - rotation_region_min);
+            //   // // Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x2v(j) - rotation_region_min);
+            //   // // Bz = Bhz_norm + Bz_slope_norm * ( pcoord->x2v(j) - rotation_region_min);
 
-              Real theta_b = GetBAngle(pcoord->x2v(j));
-              Bx = std::cos(theta_b);
-              Bz = std::sin(theta_b);
-              //Now normalize
 
-              Real B_norm = std::sqrt( SQR(Bx) + SQR(Bz) );
-              // Bx = Bx * Bh/B_norm;
-              // Bz = Bz * Bh/B_norm;
-              Bx = Bx * Bmag/B_norm;
-              Bz = Bz * Bmag/B_norm;
-              }
 
-            else{
-              Bx = Bcx * Bmag/Bc;
-              Bz = Bcz * Bmag/Bc;
-            }
-            By = 0;
+            //   // // Bx = Bhx_norm * std::sin((1.0-w)*theta_rot)/(sin(theta_rot) + 1e-10) + Bcx_norm*std::sin(w*theta_rot)/(sin(theta_rot) + 1e-10);
+            //   // // Bz = Bhz_norm * std::sin((1.0-w)*theta_rot)/(sin(theta_rot) + 1e-10) + Bcz_norm*std::sin(w*theta_rot)/(sin(theta_rot) + 1e-10);
+
+
+            //   // Bx = Bx_rotation_region_ymin + Bx_slope * ( pcoord->x2v(j) - rotation_region_min);
+            //   // Bz = Bz_rotation_region_ymin + Bz_slope * ( pcoord->x2v(j) - rotation_region_min);
+
+            //   Real theta_b = GetBAngle(pcoord->x2v(j));
+            //   Bx = std::cos(theta_b);
+            //   Bz = std::sin(theta_b);
+            //   //Now normalize
+
+            //   Real B_norm = std::sqrt( SQR(Bx) + SQR(Bz) );
+            //   // Bx = Bx * Bh/B_norm;
+            //   // Bz = Bz * Bh/B_norm;
+            //   Bx = Bx * Bmag/B_norm;
+            //   Bz = Bz * Bmag/B_norm;
+            //   }
+
+            // else{
+            //   Bx = Bcx * Bmag/Bc;
+            //   Bz = Bcz * Bmag/Bc;
+            // }
+            // By = 0;
 
 
             // Calculate normal-frame Lorentz factor
@@ -1205,87 +1263,107 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
             Real Bmag, exp_arg_term;
 
-            if (pcoord->x2v(j) > 0.0){ // cold
-              // exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
-              // Real A_const = exp_arg_term;
-              // Real B_const = 1.0 + 2.0 * grav_acc*y0 - SQR(shear_velocity);
 
-              // // press = press_over_rho_interface*dc * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
+            Real beta = std::exp( SmoothInterpolation(t, std::log(beta_h), std::log(beta_c), length_of_rotation_region) );
 
-              // Bmag = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const));
-              // Bmag = Bc * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
+            Bmag =  std::sqrt(P_sol(j)/beta*2.0);
 
 
-              Bmag =  std::sqrt(P_sol(j)/beta_c*2.0);
 
-            }
-            else{ // hot
-              // exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
-              // Real A_const = exp_arg_term;
-              // Real B_const = 1.0 + 2.0 * grav_acc*y0;
-              // // press = press_over_rho_interface*dc * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
+            Real theta_b = GetBAngle(pcoord->x2v(j));
+            Bx = std::cos(theta_b);
+            Bz = std::sin(theta_b);
+            //Now normalize
 
-              // Bmag = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const));
-
-              // Bmag = Bh * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
-
-              Bmag =  std::sqrt(P_sol(j)/beta_h*2.0);
-            }
-
-            if (pcoord->x2v(j) < rotation_region_min){
-              Bx = Bhx * Bmag/Bh;
-              Bz = Bhz * Bmag/Bh;
-            }
-            else if (pcoord->x2v(j) < rotation_region_max){
-              // Real w = ( pcoord->x2v(j) -rotation_region_min )/(rotation_region_max-rotation_region_min);
-
-              // // Bx = Bhx + Bx_slope * ( pcoord->x2v(j) - rotation_region_min);
-              // // Bz = Bhz + Bz_slope * ( pcoord->x2v(j) - rotation_region_min);
-              // // Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x2v(j) - rotation_region_min);
-              // // Bz = Bhz_norm + Bz_slope_norm * ( pcoord->x2v(j) - rotation_region_min);
+            Real B_norm = std::sqrt( SQR(Bx) + SQR(Bz) );
+            // Bx = Bx * Bh/B_norm;
+            // Bz = Bz * Bh/B_norm;
+            Bx = Bx * Bmag/B_norm;
+            Bz = Bz * Bmag/B_norm;
+            By = 0.0;
 
 
-              // // Bx = Bhx_norm * std::sin((1.0-w)*theta_rot)/(sin(theta_rot) + 1e-10) + Bcx_norm*std::sin(w*theta_rot)/(sin(theta_rot) + 1e-10);
-              // // Bz = Bhz_norm * std::sin((1.0-w)*theta_rot)/(sin(theta_rot) + 1e-10) + Bcz_norm*std::sin(w*theta_rot)/(sin(theta_rot) + 1e-10);
+            // if (pcoord->x2v(j) > 0.0){ // cold
+            //   // exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
+            //   // Real A_const = exp_arg_term;
+            //   // Real B_const = 1.0 + 2.0 * grav_acc*y0 - SQR(shear_velocity);
+
+            //   // // press = press_over_rho_interface*dc * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
+
+            //   // Bmag = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const));
+            //   // Bmag = Bc * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
 
 
-              // Bx = Bx_rotation_region_ymin + Bx_slope * ( pcoord->x2v(j) - rotation_region_min);
-              // Bz = Bz_rotation_region_ymin + Bz_slope * ( pcoord->x2v(j) - rotation_region_min);
+            //   Bmag =  std::sqrt(P_sol(j)/beta_c*2.0);
 
-              Real theta_b = GetBAngle(pcoord->x2v(j));
+            // }
+            // else{ // hot
+            //   // exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
+            //   // Real A_const = exp_arg_term;
+            //   // Real B_const = 1.0 + 2.0 * grav_acc*y0;
+            //   // // press = press_over_rho_interface*dc * std::pow( 1.0+ C_const/B_const *y, A_const/C_const);
 
-              Bx = std::cos(theta_b);
-              Bz = std::sin(theta_b);
+            //   // Bmag = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x2v(j), A_const/C_const));
 
-              //Now normalize
+            //   // Bmag = Bh * std::sqrt( std::exp(pcoord->x2v(j)*exp_arg_term));
 
-              Real B_norm = std::sqrt( SQR(Bx) + SQR(Bz) );
-              // Bx = Bx * Bh/B_norm;
-              // Bz = Bz * Bh/B_norm;
-              Bx = Bx * Bmag/B_norm;
-              Bz = Bz * Bmag/B_norm;
-              }
+            //   Bmag =  std::sqrt(P_sol(j)/beta_h*2.0);
+            // }
+
+            // if (pcoord->x2v(j) < rotation_region_min){
+            //   Bx = Bhx * Bmag/Bh;
+            //   Bz = Bhz * Bmag/Bh;
+            // }
             // else if (pcoord->x2v(j) < rotation_region_max){
-            //   Bx = Bhx + Bx_slope * ( pcoord->x2v(j) - rotation_region_min);
-            //   Bz = Bhz + Bz_slope * ( pcoord->x2v(j) - rotation_region_min);
+            //   // Real w = ( pcoord->x2v(j) -rotation_region_min )/(rotation_region_max-rotation_region_min);
 
-            //   // Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x2v(j) - rotation_region_min);
-            //   // Bz = Bhz_norm + Bz_slope_norm * ( pcoord->x2v(j) - rotation_region_min);
+            //   // // Bx = Bhx + Bx_slope * ( pcoord->x2v(j) - rotation_region_min);
+            //   // // Bz = Bhz + Bz_slope * ( pcoord->x2v(j) - rotation_region_min);
+            //   // // Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x2v(j) - rotation_region_min);
+            //   // // Bz = Bhz_norm + Bz_slope_norm * ( pcoord->x2v(j) - rotation_region_min);
+
+
+            //   // // Bx = Bhx_norm * std::sin((1.0-w)*theta_rot)/(sin(theta_rot) + 1e-10) + Bcx_norm*std::sin(w*theta_rot)/(sin(theta_rot) + 1e-10);
+            //   // // Bz = Bhz_norm * std::sin((1.0-w)*theta_rot)/(sin(theta_rot) + 1e-10) + Bcz_norm*std::sin(w*theta_rot)/(sin(theta_rot) + 1e-10);
+
+
+            //   // Bx = Bx_rotation_region_ymin + Bx_slope * ( pcoord->x2v(j) - rotation_region_min);
+            //   // Bz = Bz_rotation_region_ymin + Bz_slope * ( pcoord->x2v(j) - rotation_region_min);
+
+            //   Real theta_b = GetBAngle(pcoord->x2v(j));
+
+            //   Bx = std::cos(theta_b);
+            //   Bz = std::sin(theta_b);
 
             //   //Now normalize
 
             //   Real B_norm = std::sqrt( SQR(Bx) + SQR(Bz) );
-            //   // Bx = Bx * Bc/B_norm;
-            //   // Bz = Bz * Bc/B_norm;
+            //   // Bx = Bx * Bh/B_norm;
+            //   // Bz = Bz * Bh/B_norm;
             //   Bx = Bx * Bmag/B_norm;
             //   Bz = Bz * Bmag/B_norm;
-            // }
-            else{
-              Bx = Bcx * Bmag/Bc;
-              Bz = Bcz * Bmag/Bc;
-            }
+            //   }
+            // // else if (pcoord->x2v(j) < rotation_region_max){
+            // //   Bx = Bhx + Bx_slope * ( pcoord->x2v(j) - rotation_region_min);
+            // //   Bz = Bhz + Bz_slope * ( pcoord->x2v(j) - rotation_region_min);
 
-            By = 0;
+            // //   // Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x2v(j) - rotation_region_min);
+            // //   // Bz = Bhz_norm + Bz_slope_norm * ( pcoord->x2v(j) - rotation_region_min);
+
+            // //   //Now normalize
+
+            // //   Real B_norm = std::sqrt( SQR(Bx) + SQR(Bz) );
+            // //   // Bx = Bx * Bc/B_norm;
+            // //   // Bz = Bz * Bc/B_norm;
+            // //   Bx = Bx * Bmag/B_norm;
+            // //   Bz = Bz * Bmag/B_norm;
+            // // }
+            // else{
+            //   Bx = Bcx * Bmag/Bc;
+            //   Bz = Bcz * Bmag/Bc;
+            // }
+
+            // By = 0;
 
                         // Calculate normal-frame Lorentz factor
             Real uu1 = phydro->w(IVX,k,j,i);
@@ -1434,8 +1512,6 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
         for (int i=il; i<=iu; i++) {
 
           // Real L = pmy_mesh->mesh_size.x3max - pmy_mesh->mesh_size.x3min;
-          Real den=rho_h;
-          if (pcoord->x3v(k) > 0.0) den *= drat;
 
 
           Real C_const = -2.0*grav_acc;
@@ -1443,7 +1519,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
           Real exp_arg_term,press,Bmag;
 
-          den = P_sol(k)/press_over_rho_interface;
+          Real den = P_sol(k)/press_over_rho_interface;
           // if (pcoord->x3v(k) > 0.0){ // cold
           //   exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
           //   Real A_const = exp_arg_term;
@@ -1478,8 +1554,11 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
 
           Real v1 = 0.0;
-          if (pcoord->x3v(k) > 0.0) v1 = shear_velocity/2.0;
-          else v1 = -shear_velocity/2.0;
+          // if (pcoord->x3v(k) > 0.0) v1 = shear_velocity/2.0;
+          // else v1 = -shear_velocity/2.0;
+
+          v_1 = SmoothInterpolation(pcoord->x3v(k), -shear_velocity/2.0, shear_velocity/2.0, length_of_rotation_region) ;
+
 
           Real v2 = 0;
 
@@ -1594,77 +1673,94 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
             Real exp_arg_term,Bmag;
 
-
-            if (pcoord->x3v(k) > 0.0){ // cold
-              // exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
-              // Real A_const = exp_arg_term;
-              // Real B_const = 1.0 + 2.0 * grav_acc*z0 - SQR(shear_velocity);
-
-              // Bmag = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const));
-
-              Bmag = std::sqrt( P_sol(k) * (1/beta_c)*2.0 );
-
-              // Bmag = Bc * std::sqrt( std::exp(pcoord->x3v(k)*exp_arg_term));
-
-            }
-            else{ // hot
-              // exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
-              // // Bmag = Bh * std::sqrt( std::exp(pcoord->x3v(k)*exp_arg_term));
-              // Real A_const = exp_arg_term;
-              // Real B_const = 1.0 + 2.0 * grav_acc*z0;
-
-              // Bmag = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const));
-
-              Bmag = std::sqrt( P_sol(k) * (1/beta_h)*2.0 );
-
-            }
+            Real beta = std::exp( SmoothInterpolation(pcoord->x3v(k), std::log(beta_h), std::log(beta_c), length_of_rotation_region) );
+            Bmag = std::sqrt( P_sol(k) * (1/beta)*2.0 );
 
 
-            if (pcoord->x3v(k) < rotation_region_min){
-              Bx = Bhx * Bmag/Bh;
-              By = Bhy * Bmag/Bh;
-            }
-            else if (pcoord->x3v(k) < rotation_region_max){
-              // Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_min);
-              // By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_min);
+
+            Real theta_b = GetBAngle(pcoord->x3v(k));
+
+            Bx = std::cos(theta_b);
+            By = std::sin(theta_b);
+
+            //Now normalize
+
+            Real B_norm = std::sqrt( SQR(Bx) + SQR(By) );
+            Bx = Bx * Bmag/B_norm;
+            By = By * Bmag/B_norm;
+            Bz = 0.0;
 
 
-              // Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x3v(k) - rotation_region_min);
-              // By = Bhy_norm + By_slope_norm * ( pcoord->x3v(k) - rotation_region_min);
+            // if (pcoord->x3v(k) > 0.0){ // cold
+            //   // exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
+            //   // Real A_const = exp_arg_term;
+            //   // Real B_const = 1.0 + 2.0 * grav_acc*z0 - SQR(shear_velocity);
 
-              // Bx = Bx_rotation_region_zmin + Bx_slope * ( pcoord->x3v(k) - rotation_region_min);
-              // By = By_rotation_region_zmin + By_slope * ( pcoord->x3v(k) - rotation_region_min);
+            //   // Bmag = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const));
 
-              Real theta_b = GetBAngle(pcoord->x3v(k));
+            //   Bmag = std::sqrt( P_sol(k) * (1/beta_c)*2.0 );
 
-              Bx = std::cos(theta_b);
-              By = std::sin(theta_b);
+            //   // Bmag = Bc * std::sqrt( std::exp(pcoord->x3v(k)*exp_arg_term));
 
-              //Now normalize
+            // }
+            // else{ // hot
+            //   // exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
+            //   // // Bmag = Bh * std::sqrt( std::exp(pcoord->x3v(k)*exp_arg_term));
+            //   // Real A_const = exp_arg_term;
+            //   // Real B_const = 1.0 + 2.0 * grav_acc*z0;
 
-              Real B_norm = std::sqrt( SQR(Bx) + SQR(By) );
-              Bx = Bx * Bmag/B_norm;
-              By = By * Bmag/B_norm;
-              }
+            //   // Bmag = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const));
+
+            //   Bmag = std::sqrt( P_sol(k) * (1/beta_h)*2.0 );
+
+            // }
+
+
+            // if (pcoord->x3v(k) < rotation_region_min){
+            //   Bx = Bhx * Bmag/Bh;
+            //   By = Bhy * Bmag/Bh;
+            // }
             // else if (pcoord->x3v(k) < rotation_region_max){
             //   // Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_min);
             //   // By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_min);
 
-            //   Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x3v(k) - rotation_region_min);
-            //   By = Bhy_norm + By_slope_norm * ( pcoord->x3v(k) - rotation_region_min);
+
+            //   // Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x3v(k) - rotation_region_min);
+            //   // By = Bhy_norm + By_slope_norm * ( pcoord->x3v(k) - rotation_region_min);
+
+            //   // Bx = Bx_rotation_region_zmin + Bx_slope * ( pcoord->x3v(k) - rotation_region_min);
+            //   // By = By_rotation_region_zmin + By_slope * ( pcoord->x3v(k) - rotation_region_min);
+
+            //   Real theta_b = GetBAngle(pcoord->x3v(k));
+
+            //   Bx = std::cos(theta_b);
+            //   By = std::sin(theta_b);
 
             //   //Now normalize
 
             //   Real B_norm = std::sqrt( SQR(Bx) + SQR(By) );
             //   Bx = Bx * Bmag/B_norm;
             //   By = By * Bmag/B_norm;
-            // }
-            else{
-              Bx = Bcx * Bmag/Bc;
-              By = Bcy * Bmag/Bc;
-            }
+            //   }
+            // // else if (pcoord->x3v(k) < rotation_region_max){
+            // //   // Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_min);
+            // //   // By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_min);
 
-            Bz = 0.0;
+            // //   Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x3v(k) - rotation_region_min);
+            // //   By = Bhy_norm + By_slope_norm * ( pcoord->x3v(k) - rotation_region_min);
+
+            // //   //Now normalize
+
+            // //   Real B_norm = std::sqrt( SQR(Bx) + SQR(By) );
+            // //   Bx = Bx * Bmag/B_norm;
+            // //   By = By * Bmag/B_norm;
+            // // }
+            // else{
+            //   Bx = Bcx * Bmag/Bc;
+            //   By = Bcy * Bmag/Bc;
+            // }
+
+            // Bz = 0.0;
 
             // Calculate normal-frame Lorentz factor
             Real uu1 = phydro->w(IVX,k,j,i);
@@ -1759,78 +1855,100 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
 
             Real exp_arg_term,Bmag;
-            Real C_const = -2.0*grav_acc;
-
-            if (pcoord->x3v(k) > 0.0){ // cold
-              // exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
-              // Real A_const = exp_arg_term;
-              // Real B_const = 1.0 + 2.0 * grav_acc*z0 - SQR(shear_velocity);
-
-              // Bmag = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const));
-
-              Bmag = std::sqrt(P_sol(k)/beta_c*2.0);
-
-              // Bmag = Bc * std::sqrt( std::exp(pcoord->x3v(k)*exp_arg_term));
-
-            }
-            else{ // hot
-              // exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
-              // // Bmag = Bh * std::sqrt( std::exp(pcoord->x3v(k)*exp_arg_term));
-              // Real A_const = exp_arg_term;
-              // Real B_const =  1.0 + 2.0 * grav_acc*z0;
-
-              // Bmag = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const));
-
-              Bmag = std::sqrt(P_sol(k)/beta_h*2.0);
-            }
 
 
-            if (pcoord->x3v(k) < rotation_region_min){
-              Bx = Bhx * Bmag/Bh;
-              By = Bhy * Bmag/Bh;
-            }
-            else if (pcoord->x3v(k) < rotation_region_max){
-              // Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_min);
-              // By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_min);
 
-              // Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x3v(k) - rotation_region_min);
-              // By = Bhy_norm + By_slope_norm * ( pcoord->x3v(k) - rotation_region_min);
-
-              // Bx = Bx_rotation_region_zmin + Bx_slope * ( pcoord->x3v(k) - rotation_region_min);
-              // By = By_rotation_region_zmin + By_slope * ( pcoord->x3v(k) - rotation_region_min);
+            Real beta = std::exp( SmoothInterpolation(pcoord->x3v(k), std::log(beta_h), std::log(beta_c), length_of_rotation_region) );
+            Bmag = std::sqrt( P_sol(k) * (1/beta)*2.0 );
 
 
-              Real theta_b = GetBAngle(pcoord->x3v(k));
 
-              Bx = std::cos(theta_b);
-              By = std::sin(theta_b);
+            Real theta_b = GetBAngle(pcoord->x3v(k));
+
+            Bx = std::cos(theta_b);
+            By = std::sin(theta_b);
+
+            //Now normalize
+
+            Real B_norm = std::sqrt( SQR(Bx) + SQR(By) );
+            Bx = Bx * Bmag/B_norm;
+            By = By * Bmag/B_norm;
+            Bz = 0.0;
 
 
-              //Now normalize
+            
+            // Real C_const = -2.0*grav_acc;
 
-              Real B_norm = std::sqrt( SQR(Bx) + SQR(By) );
-              Bx = Bx * Bmag/B_norm;
-              By = By * Bmag/B_norm;
-              }
+            // if (pcoord->x3v(k) > 0.0){ // cold
+            //   // exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
+            //   // Real A_const = exp_arg_term;
+            //   // Real B_const = 1.0 + 2.0 * grav_acc*z0 - SQR(shear_velocity);
+
+            //   // Bmag = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const));
+
+            //   Bmag = std::sqrt(P_sol(k)/beta_c*2.0);
+
+            //   // Bmag = Bc * std::sqrt( std::exp(pcoord->x3v(k)*exp_arg_term));
+
+            // }
+            // else{ // hot
+            //   // exp_arg_term = grav_acc / sigma_h * (2.0 + gamma_adi/gm1*sigma_h*beta_h + 2.0*sigma_h) / (1.0 + beta_h);
+            //   // // Bmag = Bh * std::sqrt( std::exp(pcoord->x3v(k)*exp_arg_term));
+            //   // Real A_const = exp_arg_term;
+            //   // Real B_const =  1.0 + 2.0 * grav_acc*z0;
+
+            //   // Bmag = Bh * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const));
+
+            //   Bmag = std::sqrt(P_sol(k)/beta_h*2.0);
+            // }
+
+
+            // if (pcoord->x3v(k) < rotation_region_min){
+            //   Bx = Bhx * Bmag/Bh;
+            //   By = Bhy * Bmag/Bh;
+            // }
             // else if (pcoord->x3v(k) < rotation_region_max){
             //   // Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_min);
             //   // By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_min);
 
-            //   Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x3v(k) - rotation_region_min);
-            //   By = Bhy_norm + By_slope_norm * ( pcoord->x3v(k) - rotation_region_min);
+            //   // Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x3v(k) - rotation_region_min);
+            //   // By = Bhy_norm + By_slope_norm * ( pcoord->x3v(k) - rotation_region_min);
+
+            //   // Bx = Bx_rotation_region_zmin + Bx_slope * ( pcoord->x3v(k) - rotation_region_min);
+            //   // By = By_rotation_region_zmin + By_slope * ( pcoord->x3v(k) - rotation_region_min);
+
+
+            //   Real theta_b = GetBAngle(pcoord->x3v(k));
+
+            //   Bx = std::cos(theta_b);
+            //   By = std::sin(theta_b);
+
 
             //   //Now normalize
 
             //   Real B_norm = std::sqrt( SQR(Bx) + SQR(By) );
             //   Bx = Bx * Bmag/B_norm;
             //   By = By * Bmag/B_norm;
-            // }
-            else{
-              Bx = Bcx * Bmag/Bc;
-              By = Bcy * Bmag/Bc;
-            }
+            //   }
+            // // else if (pcoord->x3v(k) < rotation_region_max){
+            // //   // Bx = Bhx + Bx_slope * ( pcoord->x3v(k) - rotation_region_min);
+            // //   // By = Bhy + By_slope * ( pcoord->x3v(k) - rotation_region_min);
 
-            Bz = 0.0;
+            // //   Bx = Bhx_norm + Bx_slope_norm * ( pcoord->x3v(k) - rotation_region_min);
+            // //   By = Bhy_norm + By_slope_norm * ( pcoord->x3v(k) - rotation_region_min);
+
+            // //   //Now normalize
+
+            // //   Real B_norm = std::sqrt( SQR(Bx) + SQR(By) );
+            // //   Bx = Bx * Bmag/B_norm;
+            // //   By = By * Bmag/B_norm;
+            // // }
+            // else{
+            //   Bx = Bcx * Bmag/Bc;
+            //   By = Bcy * Bmag/Bc;
+            // }
+
+            // Bz = 0.0;
 
 
             // Calculate normal-frame Lorentz factor
