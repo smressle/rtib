@@ -102,6 +102,9 @@ int RefinementCondition(MeshBlock *pmb);
 Real SmoothInterpolation(Real t, Real lower_value, Real higher_value, Real width){
   return lower_value + 0.5 * (higher_value - lower_value) * ( 1.0 + std::tanh(t/width) );
 }
+Real SmoothInterpolationDeriviative(Real t, Real lower_value, Real higher_value, Real width){
+  return 0.5 * (higher_value - lower_value) * ( SQR(std:sech(t/width))/width );
+}
 
 Real GetBAngle(const Real x){
 
@@ -225,7 +228,7 @@ void Pressure_ODE_2D(Real t, Real y, bool is_top,ParameterInput *pin, MeshBlock 
           2  - 
           2 * (SQR(Bx_over_fake_B)/bsq_over_fake_B_sq) * ( SQR(v_x) )
       );
-      *dydt =  (P / (beta + 1)) * prefactor * bracket;
+      *dydt =  (P / (beta + 1.0)) * prefactor * bracket + ( P/(beta+1.0)) * SmoothInterpolationDeriviative(t, std::log(beta_h), std::log(beta_c), length_of_rotation_region);
 
 
 }
