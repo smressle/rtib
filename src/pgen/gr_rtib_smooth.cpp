@@ -322,7 +322,7 @@ void Pressure_ODE_3D(Real t, Real y, bool is_top,ParameterInput *pin, MeshBlock 
           2  - 
           2 * (SQR(Bx_over_fake_B)/bsq_over_fake_B_sq) * ( SQR(v_x) )
       );
-      *dydt =  (P / (beta + 1)) * prefactor * bracket;
+      *dydt =  (P / (beta + 1)) * prefactor * bracket + ( P/(beta+1.0)) * SmoothInterpolationDeriviative(t, std::log(beta_h), std::log(beta_c), length_of_rotation_region);
 }
 
 // Runge-Kutta 4th order ODE solver 
