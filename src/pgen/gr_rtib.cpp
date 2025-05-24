@@ -142,7 +142,7 @@ Real GetBAngle(const Real x){
       // return  angle_with_x_h + w * delta_theta;
 
 
-      return SmoothInterpolation(x, angle_with_x_h, angle_with_x_c, length_of_rotation_region)
+      return SmoothInterpolation(x, angle_with_x_h, angle_with_x_c, length_of_rotation_region);
 }
 
 void Pressure_ODE_2D(Real t, Real y, bool is_top,ParameterInput *pin, MeshBlock *pmb, Real *dydt) {
@@ -948,7 +948,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           // else v1 = -shear_velocity/2.0;
 
 
-          v_1 = SmoothInterpolation(pcoord->x2v(j), -shear_velocity/2.0, shear_velocity/2.0, length_of_rotation_region) ;
+          v1 = SmoothInterpolation(pcoord->x2v(j), -shear_velocity/2.0, shear_velocity/2.0, length_of_rotation_region) ;
 
           Real v3 = 0;
 
@@ -1557,7 +1557,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           // if (pcoord->x3v(k) > 0.0) v1 = shear_velocity/2.0;
           // else v1 = -shear_velocity/2.0;
 
-          v_1 = SmoothInterpolation(pcoord->x3v(k), -shear_velocity/2.0, shear_velocity/2.0, length_of_rotation_region) ;
+          v1 = SmoothInterpolation(pcoord->x3v(k), -shear_velocity/2.0, shear_velocity/2.0, length_of_rotation_region) ;
 
 
           Real v2 = 0;
@@ -1876,7 +1876,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             Bz = 0.0;
 
 
-            
+
             // Real C_const = -2.0*grav_acc;
 
             // if (pcoord->x3v(k) > 0.0){ // cold
