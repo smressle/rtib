@@ -1107,7 +1107,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
             Real exp_arg_term,Bmag;
 
-            Real beta = std::exp( SmoothInterpolation(t, std::log(beta_h), std::log(beta_c), length_of_rotation_region) );
+            Real beta = std::exp( SmoothInterpolation(pcoord->x2v(j), std::log(beta_h), std::log(beta_c), length_of_rotation_region) );
 
             Bmag =  std::sqrt(P_sol(j)/beta*2.0);
 
@@ -1264,7 +1264,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
             Real Bmag, exp_arg_term;
 
 
-            Real beta = std::exp( SmoothInterpolation(t, std::log(beta_h), std::log(beta_c), length_of_rotation_region) );
+            Real beta = std::exp( SmoothInterpolation(pcoord->x2v(j), std::log(beta_h), std::log(beta_c), length_of_rotation_region) );
 
             Bmag =  std::sqrt(P_sol(j)/beta*2.0);
 
