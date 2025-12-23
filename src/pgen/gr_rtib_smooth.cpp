@@ -122,8 +122,9 @@ Real GetBAngle(const Real x){
       // Real angle_with_x_h = std::atan2(Bhz,Bhx);
       // Real angle_with_x_c = std::atan2(Bcz,Bcx);
 
-      Real angle_with_x_c = 0.0;
-      Real angle_with_x_h = theta_rot;
+      Real angle_with_x_h = -PI/2.0;  // represents flux tube.  Should always be perpendicular to x (shear direction)
+      Real angle_with_x_c = angle_with_x_h + theta_rot; // represents disk.  Could be either aligned with x (90 degree rotation) or aligned with tube 
+
 
 
 
