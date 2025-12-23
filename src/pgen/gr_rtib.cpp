@@ -1445,11 +1445,11 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
           den = P_sol(k)/press_over_rho_interface;
           // if (pcoord->x3v(k) > 0.0){ // cold
-          //   exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
-          //   Real A_const = exp_arg_term;
-          //   Real B_const = 1.0 + 2.0 * grav_acc*z0 - SQR(shear_velocity);
-          //   press = press_over_rho_interface*dc * std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const);
-          //   // press = press_over_rho_interface*dc * std::exp(pcoord->x3v(k)*exp_arg_term);
+            // exp_arg_term = grav_acc / sigma_c * (2.0 + gamma_adi/gm1*sigma_c*beta_c + 2.0*sigma_c) / (1.0 + beta_c);
+            // Real A_const = exp_arg_term;
+            // Real B_const = 1.0 + 2.0 * grav_acc*z0 - SQR(shear_velocity);
+            // press = press_over_rho_interface*dc * std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const);
+            // press = press_over_rho_interface*dc * std::exp(pcoord->x3v(k)*exp_arg_term);
 
           //   den = dc * std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const);
           //   Bmag = Bc * std::sqrt( std::pow( 1.0+ C_const/B_const *pcoord->x3v(k), A_const/C_const));

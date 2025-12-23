@@ -786,15 +786,26 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
     if (MAGNETIC_FIELDS_ENABLED) {
 
 
-      Real Bin = ( Bh * Bc * std::sin(theta_rot) ) / std::sqrt( SQR(Bh) + SQR(Bc) + 2.0*Bh*Bc*std::cos(theta_rot) ) ;
-      Real Bhx = Bin;
-      Real Bcx = - Bhx;
+
+      Real theta_bh = GetBAngle(pmb->pmy_mesh->mesh_size.x2min);
+      Real theta_bc = GetBAngle(pmb->pmy_mesh->mesh_size.x2max);
+      // Real Bin = ( Bh * Bc * std::sin(theta_rot) ) / std::sqrt( SQR(Bh) + SQR(Bc) + 2.0*Bh*Bc*std::cos(theta_rot) ) ;
+      // Real Bhx = Bin;
+      // Real Bcx = - Bhx;
 
 
-      Real sign_flip = 1.0;
-      if (std::cos(theta_rot)<0.0) sign_flip=-1.0;
-      Real Bhz = sign_flip * std::sqrt( SQR(Bh) - SQR(Bin) );
-      Real Bcz =             std::sqrt( SQR(Bc) - SQR(Bin) );
+      // Real sign_flip = 1.0;
+      // if (std::cos(theta_rot)<0.0) sign_flip=-1.0;
+      // Real Bhz = sign_flip * std::sqrt( SQR(Bh) - SQR(Bin) );
+      // Real Bcz =             std::sqrt( SQR(Bc) - SQR(Bin) );
+
+
+      Real Bhx = Bh * std::cos(theta_bh);
+      Real Bhz = Bh * std::sin(theta_bh);
+
+
+      Real Bcx = Bc * std::cos(theta_bc);
+      Real Bcz = Bc * std::sin(theta_bc);
 
 
       Real Bhx_norm = Bhx/Bh;
@@ -1041,14 +1052,26 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
     // initialize interface B
     if (MAGNETIC_FIELDS_ENABLED) {
 
-      Real Bin = ( Bh * Bc * std::sin(theta_rot) ) / std::sqrt( SQR(Bh) + SQR(Bc) + 2.0*Bh*Bc*std::cos(theta_rot) ) ;
-      Real Bhx = Bin;
-      Real Bcx = - Bhx;
+      // Real Bin = ( Bh * Bc * std::sin(theta_rot) ) / std::sqrt( SQR(Bh) + SQR(Bc) + 2.0*Bh*Bc*std::cos(theta_rot) ) ;
+      // Real Bhx = Bin;
+      // Real Bcx = - Bhx;
 
-      Real sign_flip = 1.0;
-      if (std::cos(theta_rot)<0.0) sign_flip=-1.0;
-      Real Bhy = sign_flip * std::sqrt( SQR(Bh) - SQR(Bin) );
-      Real Bcy =             std::sqrt( SQR(Bc) - SQR(Bin) );
+      // Real sign_flip = 1.0;
+      // if (std::cos(theta_rot)<0.0) sign_flip=-1.0;
+      // Real Bhy = sign_flip * std::sqrt( SQR(Bh) - SQR(Bin) );
+      // Real Bcy =             std::sqrt( SQR(Bc) - SQR(Bin) );
+
+
+      Real theta_bh = GetBAngle(pmb->pmy_mesh->mesh_size.x3min);
+      Real theta_bc = GetBAngle(pmb->pmy_mesh->mesh_size.x3max);
+
+      Real Bhx = Bh * std::cos(theta_bh);
+      Real Bhy = Bh * std::sin(theta_bh);
+
+
+      Real Bcx = Bc * std::cos(theta_bc);
+      Real Bcy = Bc * std::sin(theta_bc);
+
 
       Real Bx, By,Bz;
 
