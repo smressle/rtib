@@ -787,8 +787,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
 
 
-      Real theta_bh = GetBAngle(pmb->pmy_mesh->mesh_size.x2min);
-      Real theta_bc = GetBAngle(pmb->pmy_mesh->mesh_size.x2max);
+      Real theta_bh = GetBAngle(pmy_mesh->mesh_size.x2min);
+      Real theta_bc = GetBAngle(pmy_mesh->mesh_size.x2max);
       // Real Bin = ( Bh * Bc * std::sin(theta_rot) ) / std::sqrt( SQR(Bh) + SQR(Bc) + 2.0*Bh*Bc*std::cos(theta_rot) ) ;
       // Real Bhx = Bin;
       // Real Bcx = - Bhx;
@@ -1062,8 +1062,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       // Real Bcy =             std::sqrt( SQR(Bc) - SQR(Bin) );
 
 
-      Real theta_bh = GetBAngle(pmb->pmy_mesh->mesh_size.x3min);
-      Real theta_bc = GetBAngle(pmb->pmy_mesh->mesh_size.x3max);
+      Real theta_bh = GetBAngle(pmy_mesh->mesh_size.x3min);
+      Real theta_bc = GetBAngle(pmy_mesh->mesh_size.x3max);
 
       Real Bhx = Bh * std::cos(theta_bh);
       Real Bhy = Bh * std::sin(theta_bh);
