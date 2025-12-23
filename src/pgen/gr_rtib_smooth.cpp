@@ -108,19 +108,23 @@ Real SmoothInterpolationDeriviative(Real t, Real lower_value, Real higher_value,
 
 Real GetBAngle(const Real x){
 
-      Real Bin = ( Bh * Bc * std::sin(theta_rot) ) / std::sqrt( SQR(Bh) + SQR(Bc) + 2.0*Bh*Bc*std::cos(theta_rot) ) ;
-      Real Bhx = Bin;
-      Real Bcx = - Bhx;
+      // Real Bin = ( Bh * Bc * std::sin(theta_rot) ) / std::sqrt( SQR(Bh) + SQR(Bc) + 2.0*Bh*Bc*std::cos(theta_rot) ) ;
+      // Real Bhx = Bin;
+      // Real Bcx = - Bhx;
 
 
-      Real sign_flip = 1.0;
-      if (std::cos(theta_rot)<0.0) sign_flip=-1.0;
-      Real Bhz = sign_flip * std::sqrt( SQR(Bh) - SQR(Bin) );
-      Real Bcz =             std::sqrt( SQR(Bc) - SQR(Bin) );
+      // Real sign_flip = 1.0;
+      // if (std::cos(theta_rot)<0.0) sign_flip=-1.0;
+      // Real Bhz = sign_flip * std::sqrt( SQR(Bh) - SQR(Bin) );
+      // Real Bcz =             std::sqrt( SQR(Bc) - SQR(Bin) );
 
-      //This applies to 2D and 3D.  In 2D field should be called Bzy
-      Real angle_with_x_h = std::atan2(Bhz,Bhx);
-      Real angle_with_x_c = std::atan2(Bcz,Bcx);
+      // //This applies to 2D and 3D.  In 2D field should be called Bzy
+      // Real angle_with_x_h = std::atan2(Bhz,Bhx);
+      // Real angle_with_x_c = std::atan2(Bcz,Bcx);
+
+      Real angle_with_x_c = 0.0;
+      Real angle_with_x_h = theta_rot;
+
 
 
       return SmoothInterpolation(x, angle_with_x_h, angle_with_x_c, length_of_rotation_region);
