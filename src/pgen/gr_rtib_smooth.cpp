@@ -88,7 +88,7 @@ void rungeKutta4(
 namespace {
 // made global to share with BC functions
 Real grav_acc,shear_velocity;
-Real beta_c, sigma_c,press_over_rho_interface, sigma_h,beta_h;
+Real beta_c, sigma_c,press_over_rho_h,press_over_rho_c, sigma_h,beta_h;
 Real rho_h,rho_c, Bh,Bc,drat;
 Real P_h, P_c;
 Real L, length_of_rotation_region;
@@ -157,7 +157,8 @@ void Pressure_ODE_2D(Real t, Real y, bool is_top,ParameterInput *pin, MeshBlock 
 
 
       beta = std::exp( SmoothInterpolation(t, std::log(beta_h), std::log(beta_c), length_of_rotation_region) );
-      sigma = 2.0 * press_over_rho_interface / beta ;
+      sigma= std::exp( SmoothInterpolation(t, std::log(sigma_h), std::log(sigma_c), length_of_rotation_region) );
+      // sigma = 2.0 * press_over_rho_interface / beta ;
       v_x = SmoothInterpolation(t, v_h, v_c, length_of_rotation_region) ;
 
 
@@ -228,7 +229,7 @@ void Pressure_ODE_3D(Real t, Real y, bool is_top,ParameterInput *pin, MeshBlock 
       Real beta, sigma;
 
       beta = std::exp( SmoothInterpolation(t, std::log(beta_h), std::log(beta_c), length_of_rotation_region) );
-      sigma = 2.0 * press_over_rho_interface / beta ;
+      sigma= std::exp( SmoothInterpolation(t, std::log(sigma_h), std::log(sigma_c), length_of_rotation_region) );
       v_x = SmoothInterpolation(t, v_h, v_c, length_of_rotation_region) ;
 
 
@@ -358,7 +359,7 @@ void integrate_P_ODE(int il, int iu, int jl, int ju, int kl, int ku, AthenaArray
 
        //do first step
        Real dt_runge_kutta = (x_coord(kl)-pmb->pmy_mesh->mesh_size.x3min)/(pmb->pmy_mesh->mesh_size.nx3*10.0);
-       Real P_result = 1.0 *  press_over_rho_interface; //aset density to one at bottom of box
+       Real P_result = 1.0 *  press_over_rho_h; //set density to one at bottom of box
        rungeKutta4(Pressure_ODE_3D,&P_result, pmb->pmy_mesh->mesh_size.x3min,x_coord(kl), dt_runge_kutta, true, pin,pmb); 
        P_sol(kl) = P_result;
 
@@ -377,7 +378,7 @@ void integrate_P_ODE(int il, int iu, int jl, int ju, int kl, int ku, AthenaArray
 
        //do first step
        Real dt_runge_kutta = (x_coord(jl)-pmb->pmy_mesh->mesh_size.x2min)/(pmb->pmy_mesh->mesh_size.nx2*10.0);
-       Real P_result = 1.0 *  press_over_rho_interface; //aset density to one at bottom of box
+       Real P_result = 1.0 *  press_over_rho_h; //set density to one at bottom of box
        rungeKutta4(Pressure_ODE_2D,&P_result, pmb->pmy_mesh->mesh_size.x2min,x_coord(jl), dt_runge_kutta, true, pin,pmb); 
        P_sol(jl) = P_result;
 
@@ -434,9 +435,13 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
     sigma_c = pin->GetOrAddReal("problem","sigma_c",1.0);
 
 
-    press_over_rho_interface = beta_c * sigma_c /2.0;
+    press_over_rho_c = beta_c * sigma_c /2.0;
+    press_over_rho_h = beta_h * sigma_h /2.0;
+
+
+
     sigma_h = pin->GetOrAddReal("problem","sigma_h",1.0);
-    beta_h = press_over_rho_interface/sigma_h * 2.0;
+    beta_h = pin->GetOrAddReal("problem","beta_h",1.0); //press_over_rho_interface/sigma_h * 2.0;
 
 
     rho_h = 1.0;
@@ -452,8 +457,10 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
     rho_c = rho_h * drat;
 
 
-    P_h = press_over_rho_interface * rho_h;
-    P_c = press_over_rho_interface * rho_c;
+    P_h = press_over_rho_h * rho_h;
+    P_c = press_over_rho_c * rho_c;
+    // P_h = press_over_rho_interface * rho_h;
+    // P_c = press_over_rho_interface * rho_c;
 
     Bc = Bh / std::sqrt(1.0 + (1.0 - 1.0/drat)*beta_c);
 
@@ -736,7 +743,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
   Real amp = pin->GetReal("problem","amp");
   int iprob = pin->GetInteger("problem","iprob");
 
-  Real cs = std::sqrt(press_over_rho_interface * gamma_adi / (1.0 + gamma_adi/(gm1) *press_over_rho_interface) );
+  //Real cs = std::sqrt(press_over_rho_interface * gamma_adi / (1.0 + gamma_adi/(gm1) *press_over_rho_interface) );
+  Real cs = std::sqrt(press_over_rho_c * gamma_adi / (1.0 + gamma_adi/(gm1) *press_over_rho_c) );
 
   // 2D PROBLEM ---------------------------------------------------------------
 
@@ -754,7 +762,14 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
           Real v2 = 0.0;
           Real v3 = 0.0;
 
-          Real den = P_sol(j)/press_over_rho_interface;
+
+          Real beta = std::exp( SmoothInterpolation(pcoord->x2v(j), std::log(beta_h), std::log(beta_c), length_of_rotation_region) );
+
+          Real sigma = std::exp( SmoothInterpolation(pcoord->x2v(j), std::log(sigma_h), std::log(sigma_c), length_of_rotation_region) );
+
+          Real press_over_rho = beta * sigma / 2.0;
+
+          Real den = P_sol(j)/press_over_rho;
 
           phydro->w(IDN,k,j,i) = den;
 
@@ -1018,7 +1033,13 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
         for (int i=il; i<=iu; i++) {
 
 
-          Real den = P_sol(k)/press_over_rho_interface;
+          Real beta = std::exp( SmoothInterpolation(pcoord->x3v(k), std::log(beta_h), std::log(beta_c), length_of_rotation_region) );
+
+          Real sigma = std::exp( SmoothInterpolation(pcoord->x3v(k), std::log(sigma_h), std::log(sigma_c), length_of_rotation_region) );
+
+          Real press_over_rho = beta * sigma / 2.0;
+
+          Real den = P_sol(k)/press_over_rho;
 
           phydro->w(IDN,k,j,i) = den;
 
