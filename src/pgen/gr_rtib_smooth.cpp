@@ -364,7 +364,7 @@ void integrate_P_ODE(int il, int iu, int jl, int ju, int kl, int ku, AthenaArray
        P_sol(kl) = P_result;
 
        for (int k=kl+1; k<=ku; k++) {
-          fprintf(stderr,"k: %d pressure: %g p/rho_h: %g p/rho_c: %g\n",k, P_result,press_over_rho_h,press_over_rho_c);
+          // fprintf(stderr,"k: %d pressure: %g p/rho_h: %g p/rho_c: %g\n",k, P_result,press_over_rho_h,press_over_rho_c);
          dt_runge_kutta = (x_coord(k)-x_coord(k-1))/(10.0);
          P_result = P_sol(k-1);
          rungeKutta4(Pressure_ODE_3D, &P_result, x_coord(k-1),x_coord(k), dt_runge_kutta, true, pin,pmb); 
@@ -436,14 +436,15 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
     beta_c = pin->GetOrAddReal("problem","beta_c",1.0);
     sigma_c = pin->GetOrAddReal("problem","sigma_c",1.0);
 
+    sigma_h = pin->GetOrAddReal("problem","sigma_h",1.0);
+    beta_h = pin->GetOrAddReal("problem","beta_h",1.0); //press_over_rho_interface/sigma_h * 2.0;
+
+
 
     press_over_rho_c = beta_c * sigma_c /2.0;
     press_over_rho_h = beta_h * sigma_h /2.0;
 
 
-
-    sigma_h = pin->GetOrAddReal("problem","sigma_h",1.0);
-    beta_h = pin->GetOrAddReal("problem","beta_h",1.0); //press_over_rho_interface/sigma_h * 2.0;
 
 
     rho_h = 1.0;
