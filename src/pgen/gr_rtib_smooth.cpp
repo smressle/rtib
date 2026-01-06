@@ -462,7 +462,8 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
     // P_h = press_over_rho_interface * rho_h;
     // P_c = press_over_rho_interface * rho_c;
 
-    Bc = Bh / std::sqrt(1.0 + (1.0 - 1.0/drat)*beta_c);
+    // Bc = Bh / std::sqrt(1.0 + (1.0 - 1.0/drat)*beta_c);
+    Bc = Bh * std::sqrt( ( 1 + beta_h ) / ( 1 + beta_c) );
 
     if (mesh_size.nx3==1) L = mesh_size.x2max - mesh_size.x2min;
     else L = mesh_size.x3max - mesh_size.x3min;
