@@ -453,7 +453,7 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
     // Bh^2/Bc^2 = 1 + (1 - 1/drat)*beta_c 
     // sigma_h/sigma_c  = drat + (drat -1)*beta_c
     // drat = ( sigma_h/sigma_c+beta_c )/(1.0 + beta_c);
-    drat = ( sigam_h/sigma_c ) * ( 1.0 + beta_h ) / ( 1.0 + beta_c) ;
+    drat = ( sigma_h/sigma_c ) * ( 1.0 + beta_h ) / ( 1.0 + beta_c) ;
 
     rho_c = rho_h * drat;
 
